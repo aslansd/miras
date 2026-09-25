@@ -1,0 +1,5 @@
+include LICENSE LICENSE-ORIGINAL-CC0 NOTICE CITATION.cff README.md CHANGELOG.md ROADMAP.md TESTING.md PUBLISHING.md
+recursive-include src/miras/data *.csv
+recursive-include src/miras/stan *.stan
+recursive-include tests *.py
+recursive-include examples *.py

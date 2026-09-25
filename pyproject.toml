@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "miras"
+version = "0.1.0"
+description = "Cultural inheritance, simulated and interrogated: agent-based models of cultural evolution and a check of whether your study design can recover their parameters."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE", "LICENSE-ORIGINAL-CC0", "NOTICE"]
+authors = [{name = "Aslan Satary Dizaji"}]
+keywords = ["cultural evolution", "agent-based model", "social learning", "conformity",
+            "identifiability", "approximate bayesian computation", "simulation-based inference",
+            "evolutionary game theory"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = ["numpy>=1.23"]
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.6"]
+stan = ["cmdstanpy>=1.2"]
+provenance = ["daftar>=1.0"]
+paper = ["matplotlib>=3.6", "pandas>=1.5", "cmdstanpy>=1.2"]
+dev = ["pytest>=7", "matplotlib>=3.6", "pandas>=1.5"]
+all = ["matplotlib>=3.6", "pandas>=1.5", "cmdstanpy>=1.2", "daftar>=1.0"]
+
+[project.scripts]
+miras = "miras.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/aslansd/miras"
+"Original workflow" = "https://github.com/DominikDeffner/CulturalEvolutionWorkflow"
+Paper = "https://doi.org/10.1073/pnas.2322887121"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+miras = ["data/*.csv", "stan/*.stan"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: long-running (Stan fits); skipped unless --run-slow"]
