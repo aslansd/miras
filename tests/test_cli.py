@@ -4,9 +4,10 @@ from miras.cli import main
 
 
 def test_help_and_version(capsys):
+    import miras
     assert main([]) == 0
     assert main(["--version"]) == 0
-    assert "0.1.0" in capsys.readouterr().out
+    assert miras.__version__ in capsys.readouterr().out
 
 
 def test_doctor(capsys):

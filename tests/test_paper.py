@@ -60,5 +60,11 @@ def test_longitudinal_stan_identifiability(tmp_path):
     if not cmdstan_available()[0]:
         pytest.skip("CmdStan not installed")
     from miras.paper import longitudinal
-    longitudinal.main(["--quick", "--identify", "2", "--outdir", str(tmp_path), "--cores", "1"])
-    assert (tmp_path / "longitudinal_identifiability.md").exists()
+    # quick-mode fits are too small to converge; by default they would all be
+    # left out, so keep them and check that the report says what happened
+    longitudinal.main(["--quick", "--identify", "2", "--keep-unconverged",
+                       "--outdir", str(tmp_path), "--cores", "1"])
+    report = (tmp_path / "longitudinal_identifiability.md").read_text()
+    assert "## Findings" in report
+    assert len(list(tmp_path.glob("identify_*/convergence-seed-*.json"))) == 2
+    assert len(list((tmp_path / "identify_0" / "stan_output").glob("seed-*"))) == 1
