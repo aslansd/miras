@@ -18,7 +18,6 @@ import os
 import numpy as np
 
 
-import matplotlib.pyplot as plt
 
 from ._plot import SET1, shade_density, clean_density_axis
 from ..provenance import tracked
@@ -62,6 +61,7 @@ def power_analysis(rng, n_rep=200):
 
 
 def plot_power(err, path):
+    import matplotlib.pyplot as plt
     fig, ax = plt.subplots(figsize=(6, 5))
     im = ax.imshow(err, origin="lower", aspect="auto", cmap="YlOrRd",
                    extent=[SIGMA[0], SIGMA[-1], -0.5, 9.5])
@@ -87,6 +87,9 @@ def causal_effect(rng, iter_warmup=1500, iter_sampling=1500, chains=4):
         chains=chains, iter_warmup=iter_warmup, iter_sampling=iter_sampling,
         seed=int(rng.integers(1, 2**31 - 1)), show_progress=False,
     )
+    diag = stan.convergence(fit, ["a", "bmd", "bcd", "sigma"])
+    print(f"  {diag.line()}{'' if diag.converged else '  -> NOT CONVERGED'}")
+    stan.warn_if_unconverged(diag)
     s = {k: fit.stan_variable(k) for k in ("a", "bmd", "bcd", "sigma")}
     n = s["sigma"].size
     Cs = rng.choice(dat["C"], n, replace=True)     # sample C from its "empirical" distribution
@@ -96,6 +99,7 @@ def causal_effect(rng, iter_warmup=1500, iter_sampling=1500, chains=4):
 
 
 def plot_effect(effect, path):
+    import matplotlib.pyplot as plt
     fig, ax = plt.subplots(figsize=(4, 4))
     shade_density(ax, effect, SET1[0])
     ax.set_xlim(-4, 8)

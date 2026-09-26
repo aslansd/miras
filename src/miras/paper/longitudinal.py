@@ -28,8 +28,6 @@ import argparse
 import json
 import os
 import pickle
-import time
-from multiprocessing import Pool
 
 import numpy as np
 
@@ -178,22 +176,45 @@ def build_stan_data(d, n_mod):
 # --------------------------------------------------------------------------- #
 # 2) Fit Stan model
 # --------------------------------------------------------------------------- #
+KEY_PARAMS = ("logit_mu", "log_theta", "logit_m")
+
+
 def fit_model(stan_data, seed, cores, outdir, iter_warmup=1500, iter_sampling=1500, chains=4,
-              show_progress=True):
+              show_progress=True, init_radius=None):
+    """Fit the longitudinal Stan model and check convergence.
+
+    Each fit writes its CSV files to its own folder, stan_output/seed-<seed>
+    (cleared first), so fits never mix in one folder. Diagnostics are printed,
+    saved to convergence-seed-<seed>.json and returned in draws["_convergence"]."""
+    import shutil
     from ..inference import stan
     os.makedirs(outdir, exist_ok=True)
     data_file = os.path.join(outdir, "longitudinal_stan_data.json")
     with open(data_file, "w") as fh:
         json.dump(stan_data, fh)
+    fit_dir = os.path.join(outdir, "stan_output", f"seed-{seed}")
+    if os.path.isdir(fit_dir):
+        shutil.rmtree(fit_dir)
     fit = stan.sample("Longitudinal_Conf", data_file, seed=seed, chains=chains,
                       iter_warmup=iter_warmup, iter_sampling=iter_sampling,
                       adapt_delta=0.8, max_treedepth=13, show_progress=show_progress,
-                      output_dir=os.path.join(outdir, "stan_output"))
-    diag = stan.convergence(fit)
-    print(f"  max R-hat = {diag['max_rhat']:.3f}, divergent transitions = {diag['divergences']}")
+                      output_dir=fit_dir, init_radius=init_radius)
+    diag = stan.convergence(fit, KEY_PARAMS)
+    print(f"  {diag.line()}{'' if diag.converged else '  -> NOT CONVERGED'}", flush=True)
+    stan.warn_if_unconverged(diag)
+    with open(os.path.join(outdir, f"convergence-seed-{seed}.json"), "w") as fh:
+        json.dump(dict(diag.as_dict(), stan_output=fit_dir, init_radius=init_radius), fh, indent=2)
     draws = {k: fit.stan_variable(k) for k in ("logit_mu", "log_theta", "age_effects")}
-    draws["_diagnostics"] = np.array([diag["max_rhat"], diag["divergences"]])
+    draws["_diagnostics"] = np.array([diag.max_rhat, diag.divergences, float(diag.converged)])
+    draws["_convergence"] = diag
     return draws
+
+
+def draws_converged(draws) -> bool:
+    """Convergence flag from a (possibly cached) draws dict. Caches from
+    0.1.0 store only [max_rhat, divergences]; judge them by the same rule."""
+    diag = np.asarray(draws.get("_diagnostics", [np.nan, np.nan]), float)
+    return bool(diag[0] <= 1.01 and diag[1] == 0)
 
 
 # --------------------------------------------------------------------------- #
@@ -219,13 +240,13 @@ def posterior_simulations(draws, n_per_cond, n_steps, cores, seed, params):
         mu = float(inv_logit(draws["logit_mu"][s]))
         m = inv_logit(draws["age_effects"][s]) + dm
         jobs.append((theta, mu, m, r, n_steps, params))
-    t0 = time.time()
+    from ._runner import Progress, make_pool
     out = []
-    with Pool(cores) as pool:
-        for k, fst in enumerate(pool.imap(_post_job, jobs), 1):
+    progress = Progress(len(jobs), every=10)
+    with make_pool(cores) as pool:
+        for fst in pool.imap(_post_job, jobs):
             out.append(fst)
-            if k % 10 == 0:
-                print(f"  {k}/{len(jobs)} posterior simulations ({time.time() - t0:.0f}s)", flush=True)
+            progress.tick()
     out = np.array(out)
     burn = min(100, n_steps - 1)
     split = lambda a: out[a * n_per_cond:(a + 1) * n_per_cond, burn:].ravel()
@@ -235,7 +256,7 @@ def posterior_simulations(draws, n_per_cond, n_steps, cores, seed, params):
 # --------------------------------------------------------------------------- #
 # 4) Figure 4
 # --------------------------------------------------------------------------- #
-def plot_figure4(d, draws, sims, age_mig_NL, P, max_age_data, path):
+def plot_figure4(d, draws, sims, age_mig_NL, P, max_age_data, path, warning=None):
     import matplotlib.pyplot as plt
     from matplotlib.gridspec import GridSpec
     col = color_ramp(SET1, P["n_groups"])    # R reassigns col.pal to a 30-colour ramp here
@@ -304,6 +325,8 @@ def plot_figure4(d, draws, sims, age_mig_NL, P, max_age_data, path):
     ax.set_xlabel(r"M -> CF$_{ST}$")
     ax.text(-0.05, 1.05, "d", transform=ax.transAxes, fontsize=12)
 
+    if warning:
+        fig.suptitle(warning, color="#E41A1C", fontsize=13, fontweight="bold", y=1.04)
     fig.savefig(path, bbox_inches="tight")
     plt.close(fig)
 
@@ -323,9 +346,12 @@ DEFAULT_TRUTHS = [(mu, th) for th in (1.0, 2.0, 3.0) for mu in (0.05, 0.1, 0.2)]
 
 
 def identify_stan(n_test, P, *, seed=1, iter_total=3000, cores=1, outdir="output",
-                  truths=None, legacy_aging=False):
+                  truths=None, legacy_aging=False, init_radius=None, keep_unconverged=False):
     """Simulate `n_test` longitudinal datasets at known (mu, theta), fit the
-    Stan model to each, and report identifiability with miras.analyze."""
+    Stan model to each, and report identifiability with miras.analyze.
+
+    Fits that do not converge are left out of the analysis (and listed in the
+    report), unless keep_unconverged=True."""
     from ..identify import analyze
     from ..inference.abc import Posterior
 
@@ -333,7 +359,7 @@ def identify_stan(n_test, P, *, seed=1, iter_total=3000, cores=1, outdir="output
     truths = [truths[k % len(truths)] for k in range(n_test)]
     priors = stan_priors()
     age_mig_NL = load_age_migration()
-    posts, truths_u = [], []
+    posts, truths_u, conv, excluded = [], [], [], []
     for k, (mu, theta) in enumerate(truths):
         print(f"[{k + 1}/{n_test}] mu = {mu}, theta = {theta}: simulating and fitting ...", flush=True)
         rng = np.random.default_rng(seed + 1000 * k)
@@ -341,12 +367,29 @@ def identify_stan(n_test, P, *, seed=1, iter_total=3000, cores=1, outdir="output
         draws = fit_model(build_stan_data(d, P["n_mod"]), seed + k, cores,
                           os.path.join(outdir, f"identify_{k}"),
                           iter_warmup=iter_total // 2, iter_sampling=iter_total // 2,
-                          show_progress=False)
+                          show_progress=False, init_radius=init_radius)
+        diag = draws["_convergence"]
+        conv.append(dict(diag.as_dict(), mu=mu, theta=theta))
+        if not diag.converged and not keep_unconverged:
+            excluded.append(k)
+            print(f"  dataset {k + 1} left out of the report (not converged)", flush=True)
+            continue
         U = np.column_stack([draws["logit_mu"], draws["log_theta"]])
         posts.append(Posterior(priors, U, np.ones(len(U))))
         truths_u.append([np.log(mu / (1 - mu)), np.log(theta)])
+    notes = []
+    if excluded:
+        notes.append(f"{len(excluded)} of {n_test} Stan fits did not converge and were left out "
+                     f"(datasets {', '.join(str(k + 1) for k in excluded)}); see "
+                     f"convergence-seed-*.json. Rerun with another --seed or a smaller "
+                     f"--init-radius.")
+    elif any(not c["converged"] for c in conv):
+        notes.append("Some Stan fits did not converge and were kept (--keep-unconverged): "
+                     "treat those rows with suspicion.")
     info = {"method": "stan", "design": f"{P['n_record']} participants x {P['n_steps']} years",
-            "truths": [list(t) for t in truths]}
+            "truths": [list(t) for t in truths], "convergence": conv, "notes": notes}
+    if not posts:
+        raise RuntimeError("no Stan fit converged, so there is nothing to analyse. " + " ".join(notes))
     return analyze(priors, np.array(truths_u), posts, info=info)
 
 
@@ -359,16 +402,27 @@ def main(argv=None):
     p.add_argument("--seed", type=int, default=1)
     p.add_argument("--outdir", default="output")
     p.add_argument("--reuse", action="store_true", help="load cached stage outputs if present")
+    p.add_argument("--refit", action="store_true",
+                   help="reuse the cached simulated data but redo the Stan fit and posterior "
+                        "simulations (e.g. with another --seed or --init-radius)")
     p.add_argument("--n-post-sims", type=int, default=100, help="posterior simulations per condition")
     p.add_argument("--post-steps", type=int, default=300, help="years per posterior simulation")
     p.add_argument("--iter", type=int, default=3000, help="Stan iterations per chain (half warm-up)")
     p.add_argument("--identify", type=int, metavar="N", default=0,
                    help="instead of the figure, run a Stan identifiability report on N datasets")
+    p.add_argument("--init-radius", type=float, default=None, metavar="R",
+                   help="start Stan chains in (-R, R) on the unconstrained scale "
+                        "(default: Stan's 2); e.g. 0.5 if a chain gets stuck")
+    p.add_argument("--keep-unconverged", action="store_true",
+                   help="with --identify: analyse fits that did not converge instead of "
+                        "leaving them out")
     p.add_argument("--legacy-aging", action="store_true", help="replicate the R ageing quirk")
     p.add_argument("--quick", action="store_true", help="tiny smoke-test run")
     p.add_argument("--track", action="store_true", help="record the run with daftar")
     args = p.parse_args(argv)
 
+    if args.refit:
+        args.reuse = True
     P = dict(DATA_PARAMS)
     sim_params = dict(SIM_PARAMS, legacy_aging=args.legacy_aging)
     if args.quick:
@@ -383,7 +437,8 @@ def main(argv=None):
                      enabled=args.track) as run:
             report = identify_stan(args.identify, P, seed=args.seed, iter_total=args.iter,
                                    cores=args.cores, outdir=args.outdir,
-                                   legacy_aging=args.legacy_aging)
+                                   legacy_aging=args.legacy_aging, init_radius=args.init_radius,
+                                   keep_unconverged=args.keep_unconverged)
             print(report.summary())
             path = os.path.join(args.outdir, "longitudinal_identifiability.md")
             with open(path, "w") as fh:
@@ -413,21 +468,30 @@ def main(argv=None):
         print(f"  {stan_data['N']} observations from {stan_data['N_id']} participants")
 
         # 2) fit
-        if args.reuse and os.path.exists(f_draws):
+        if args.reuse and not args.refit and os.path.exists(f_draws):
             draws = dict(np.load(f_draws))
         else:
             print("Fitting Stan model ...")
             draws = fit_model(stan_data, args.seed, args.cores, args.outdir,
-                              iter_warmup=args.iter // 2, iter_sampling=args.iter // 2)
-            np.savez_compressed(f_draws, **draws)
+                              iter_warmup=args.iter // 2, iter_sampling=args.iter // 2,
+                              init_radius=args.init_radius)
+            np.savez_compressed(f_draws, **{k: v for k, v in draws.items() if k != "_convergence"})
+        converged = draws_converged(draws)
+        if not converged and "_convergence" not in draws:     # loaded from the cache
+            dg = np.asarray(draws["_diagnostics"], float)
+            print(f"  WARNING: the cached fit did NOT converge (max R-hat = {dg[0]:.3f}, "
+                  f"divergent transitions = {int(dg[1])}); see convergence-seed-*.json or "
+                  f"refit (README, 'Convergence of the longitudinal fit').", flush=True)
         mu_hat = float(inv_logit(draws["logit_mu"]).mean())
         th_hat = float(np.exp(draws["log_theta"]).mean())
-        run.log_results({"mu_posterior_mean": mu_hat, "theta_posterior_mean": th_hat})
+        run.log_results({"mu_posterior_mean": mu_hat, "theta_posterior_mean": th_hat,
+                         "converged": converged})
         print(f"  posterior mean mu = {mu_hat:.3f} (true {P['mu']}), "
-              f"theta = {th_hat:.2f} (true {P['f']})")
+              f"theta = {th_hat:.2f} (true {P['f']})"
+              f"{'' if converged else '  [NOT CONVERGED: unreliable]'}")
 
         # 3) posterior simulations
-        if args.reuse and os.path.exists(f_sims):
+        if args.reuse and not args.refit and os.path.exists(f_sims):
             sims = dict(np.load(f_sims))
         else:
             print("Simulating with posterior estimates ...")
@@ -437,6 +501,8 @@ def main(argv=None):
 
         # 4) plot
         path = os.path.join(args.outdir, "TimeSeries.pdf")
-        plot_figure4(d, draws, sims, age_mig_NL, P, stan_data["Max_age"], path)
+        plot_figure4(d, draws, sims, age_mig_NL, P, stan_data["Max_age"], path,
+                     warning=None if converged else
+                     "Stan fit did NOT converge: panels b-d are unreliable")
         run.add_output(path)
-    print(f"Figure written to {path}")
+    print(f"Figure written to {path}" + ("" if converged else "  (marked NOT CONVERGED)"))

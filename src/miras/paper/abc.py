@@ -24,15 +24,14 @@ Usage:
 import argparse
 import os
 import pickle
-import time
 import warnings
-from multiprocessing import Pool
 
 import numpy as np
 import pandas as pd
 
 from ._model import paper_model
 from ._plot import SET1, alpha, color_ramp, r_density
+from ._runner import Checkpoint, Progress, interrupted_message, make_pool
 from ..provenance import tracked
 
 
@@ -90,15 +89,34 @@ def _rows(df):
             for r in df.to_dict("records")]
 
 
-def run_abc(pool, jobs, reference, seed, legacy):
+def run_abc(pool, jobs, reference, seed, legacy, checkpoint=None):
+    """Simulate every parameter combination and return its distance to the
+    reference. Results arrive in job order, so a checkpoint only needs the
+    number finished; each job's random stream is fixed by its position."""
     ref_last = (reference[0][-1], reference[1][-1], reference[2][-1])
     tasks = [(r, ref_last, True, g, legacy) for r, g in zip(_rows(jobs), spawn_rngs(seed, len(jobs)))]
-    out, t0 = [], time.time()
-    for k, d in enumerate(pool.imap(_abc_job, tasks, chunksize=8), 1):
-        out.append(d)
-        if k % 100 == 0 or k == len(tasks):
-            print(f"  {k}/{len(tasks)} ({time.time() - t0:.0f}s)", flush=True)
-    return np.array(out)
+    out = np.full(len(tasks), np.nan)
+    n_done = 0
+    state = checkpoint.load() if checkpoint else None
+    if state is not None:
+        out, n_done = state["diffs"], int(state["n_done"])
+        print(f"  resuming: {n_done}/{len(tasks)} simulations already done", flush=True)
+    progress = Progress(len(tasks), already=n_done)
+    try:
+        for d in pool.imap(_abc_job, tasks[n_done:], chunksize=8):
+            out[n_done] = d
+            n_done += 1
+            progress.tick()
+            if checkpoint and checkpoint.due():
+                checkpoint.save(diffs=out, n_done=np.array(n_done))
+    except KeyboardInterrupt:
+        if checkpoint:
+            checkpoint.save(diffs=out, n_done=np.array(n_done))
+            print(interrupted_message(n_done, len(tasks), checkpoint.path))
+        raise
+    if checkpoint:                 # keep the finished stage until the whole run ends
+        checkpoint.save(diffs=out, n_done=np.array(n_done))
+    return out
 
 
 def rejection(jobs, diffs, n_accept):
@@ -127,6 +145,23 @@ def predict(pool, df, seed, legacy):
     params = df[["N", "n_groups", "n_steps", "n_burn_in", "n_mod", "m_const", "mu", "theta", "r_dist"]]
     tasks = [(r, g, legacy) for r, g in zip(_rows(params), spawn_rngs(seed, len(df)))]
     return np.array(pool.map(_pred_job, tasks))
+
+
+def centred_contrasts(pool, post, n, seed, legacy, label):
+    """Effect of changing migration by +/-0.1 around where the posterior
+    actually lands: take the posterior rows at its most common migration value
+    m*, simulate them at m*, m* + 0.1 and m* - 0.1 (theta and everything else
+    unchanged), and return (m*, up, down) with up = F(m* + 0.1) - F(m*).
+    A direction that would leave the prior grid [0, 0.4] is None."""
+    m_star = float(post["m_const"].round(10).mode().iloc[0])
+    base = first_n(post[np.isclose(post["m_const"], m_star)], n, f"{label} m={m_star:g}")
+    f0 = predict(pool, base, seed, legacy)
+    up = down = None
+    if m_star + 0.1 <= M_GRID.max() + 1e-9:
+        up = predict(pool, shift_m(base, 0.1), seed + 1, legacy) - f0
+    if m_star - 0.1 >= M_GRID.min() - 1e-9:
+        down = predict(pool, shift_m(base, -0.1), seed + 2, legacy) - f0
+    return m_star, up, down
 
 
 def shift_m(df, delta):
@@ -171,20 +206,29 @@ def predictive_panel(ax, last_fst, ref_fst, label):
     ax.set_title(label, loc="left", fontsize=12)
 
 
-def contrast_panel(ax, up, down, col, label):
+def contrast_panel(ax, up, down, col, label, centre=None):
+    """Densities of the change in F_ST when migration goes up / down by 0.1.
+    `centre` is the migration value the contrast is taken around."""
+    ymax = 0.0
     for diff, c, txt, xpos in ((up, col[5], "+10% \n migration", 0.2),
                                (down, col[4], "-10% \n migration", 0.8)):
         if diff is None:
             continue
         x, y = r_density(diff)
+        ymax = max(ymax, y.max())
         ax.fill(x, y, color=alpha(c, 0.2), ec="black", lw=0.8)
-        ax.text(xpos, 0.85, txt, color=c, transform=ax.transAxes, ha="center", fontsize=9)
+        ax.text(xpos, 0.93, txt, color=c, transform=ax.transAxes, ha="center", va="top",
+                fontsize=9)
+    if ymax > 0:
+        ax.set_ylim(0, ymax * 1.35)                  # headroom so labels do not cover densities
     ax.axvline(0, ls="--", lw=2, color="black")
     ax.set_yticks([])
     for s in ("top", "right", "left"):
         ax.spines[s].set_visible(False)
     ax.set_xlabel(r"M -> CF$_{ST}$")
     ax.set_title(label, loc="left", fontsize=12)
+    if centre is not None:
+        ax.set_title(f"around m = {centre:g}", loc="right", fontsize=8, color="grey")
 
 
 def plot_figure5(R, path):
@@ -193,10 +237,10 @@ def plot_figure5(R, path):
     fig, axes = plt.subplots(2, 3, figsize=(18 / 2.54 * 1.4, 15 / 2.54 * 1.4))
     joint_posterior_panel(axes[0, 0], R["post_un"], 1.0, 0.3, "a")
     predictive_panel(axes[0, 1], R["last_fst_un"], R["ref_un"][0][-1], "b")
-    contrast_panel(axes[0, 2], R["diff_un_up"], R["diff_un_down"], col, "c")
+    contrast_panel(axes[0, 2], R["diff_un_up"], R["diff_un_down"], col, "c", R.get("centre_un"))
     joint_posterior_panel(axes[1, 0], R["post_c"], 2.0, 0.1, "d")
     predictive_panel(axes[1, 1], R["last_fst_c"], R["ref_c"][0][-1], "e")
-    contrast_panel(axes[1, 2], R["diff_c_up"], R["diff_c_down"], col, "f")
+    contrast_panel(axes[1, 2], R["diff_c_up"], R["diff_c_down"], col, "f", R.get("centre_c"))
     fig.tight_layout()
     fig.savefig(path, dpi=500)
     plt.close(fig)
@@ -219,6 +263,11 @@ def main(argv=None):
     p.add_argument("--reuse", action="store_true", help="load cached results if present")
     p.add_argument("--legacy-aging", action="store_true", help="replicate the R ageing quirk")
     p.add_argument("--quick", action="store_true", help="tiny smoke-test run")
+    p.add_argument("--fresh", action="store_true",
+                   help="ignore checkpoints from an interrupted run and start over")
+    p.add_argument("--paper-contrasts", action="store_true",
+                   help="contrasts hard-coded around the paper's posterior cells, as in the "
+                        "original R code (default: centred on this run's posterior)")
     p.add_argument("--track", action="store_true", help="record the run with daftar")
     args = p.parse_args(argv)
     if args.quick:
@@ -239,14 +288,23 @@ def main(argv=None):
                n_mod=30, r_dist=0.0, legacy_aging=legacy)
     R = {}
 
-    with Pool(args.cores) as pool:
+    from .. import __version__
+    ckpt_key = {"workflow": "abc", "n_comb": args.n_comb, "n_steps": args.n_steps,
+                "n_burn_in": args.n_burn_in, "seed": args.seed, "legacy_aging": legacy,
+                "version": __version__}
+    ckpts = {stage: Checkpoint(os.path.join(args.outdir, f"abc_checkpoint_{stage}.npz"),
+                               dict(ckpt_key, stage=stage)) for stage in ("un", "c")}
+    if args.fresh:
+        for c in ckpts.values():
+            c.remove()
+    with make_pool(args.cores) as pool:
         # --- Unbiased transmission reference population ---
         print("Reference data: unbiased transmission (m = 0.3, theta = 1)")
         R["ref_un"] = mig_abm(np.random.default_rng(args.seed + 1),
                               m_const=0.3, mu=0.05, theta=1.0, **sim)
         jobs_un = make_jobs(rng, args.n_comb, args.n_steps, args.n_burn_in)
         print(f"ABC: {args.n_comb} simulations")
-        diff_un = run_abc(pool, jobs_un, R["ref_un"], args.seed + 2, legacy)
+        diff_un = run_abc(pool, jobs_un, R["ref_un"], args.seed + 2, legacy, ckpts["un"])
 
         # --- Conformist transmission reference population ---
         print("Reference data: conformist transmission (m = 0.1, theta = 2)")
@@ -254,7 +312,7 @@ def main(argv=None):
                              m_const=0.1, mu=0.1, theta=2.0, **sim)
         jobs_c = make_jobs(rng, args.n_comb, args.n_steps, args.n_burn_in)
         print(f"ABC: {args.n_comb} simulations")
-        diff_c = run_abc(pool, jobs_c, R["ref_c"], args.seed + 4, legacy)
+        diff_c = run_abc(pool, jobs_c, R["ref_c"], args.seed + 4, legacy, ckpts["c"])
 
         with open(os.path.join(args.outdir, "abc_raw.pkl"), "wb") as fh:
             pickle.dump(dict(jobs_un=jobs_un, diff_un=diff_un, ref_un=R["ref_un"],
@@ -272,26 +330,37 @@ def main(argv=None):
 
         # --- Contrasts: effect of changing migration by 10 percentage points ---
         print("Contrasts ...")
-        pu = R["post_un"]
-        post_02 = pu[np.isclose(pu["m_const"], 0.2)]
-        post_03 = pu[np.isclose(pu["m_const"], 0.3)]
-        post_01 = shift_m(post_02, -0.1)
-        f01 = predict(pool, first_n(post_01, n, "unbiased m=0.1"), args.seed + 7, legacy)
-        f02 = predict(pool, first_n(post_02, n, "unbiased m=0.2"), args.seed + 8, legacy)
-        f03 = predict(pool, first_n(post_03, n, "unbiased m=0.3"), args.seed + 9, legacy)
-
-        post_02_c = shift_m(R["post_c"], 0.1)
-        post_03_c = shift_m(post_02_c, 0.1)
-        fc01 = R["last_fst_c"]
-        fc02 = predict(pool, first_n(post_02_c, n, "conformist m+0.1"), args.seed + 10, legacy)
-        fc03 = predict(pool, first_n(post_03_c, n, "conformist m+0.2"), args.seed + 11, legacy)
-
-    sub = lambda a, b: None if a is None or b is None else a - b
-    R["diff_un_up"], R["diff_un_down"] = sub(f03, f02), sub(f01, f02)
-    R["diff_c_up"], R["diff_c_down"] = sub(fc03, fc02), sub(fc01, fc02)
+        if args.paper_contrasts:
+            # The original scheme, hard-coded around the cells the paper's
+            # posterior landed on (m = 0.2/0.3 unbiased; m = 0.1 conformist).
+            pu = R["post_un"]
+            post_02 = pu[np.isclose(pu["m_const"], 0.2)]
+            post_03 = pu[np.isclose(pu["m_const"], 0.3)]
+            post_01 = shift_m(post_02, -0.1)
+            f01 = predict(pool, first_n(post_01, n, "unbiased m=0.1"), args.seed + 7, legacy)
+            f02 = predict(pool, first_n(post_02, n, "unbiased m=0.2"), args.seed + 8, legacy)
+            f03 = predict(pool, first_n(post_03, n, "unbiased m=0.3"), args.seed + 9, legacy)
+            post_02_c = shift_m(R["post_c"], 0.1)
+            post_03_c = shift_m(post_02_c, 0.1)
+            fc01 = R["last_fst_c"]
+            fc02 = predict(pool, first_n(post_02_c, n, "conformist m+0.1"), args.seed + 10, legacy)
+            fc03 = predict(pool, first_n(post_03_c, n, "conformist m+0.2"), args.seed + 11, legacy)
+            sub = lambda a, b: None if a is None or b is None else a - b
+            R["diff_un_up"], R["diff_un_down"] = sub(f03, f02), sub(f01, f02)
+            R["diff_c_up"], R["diff_c_down"] = sub(fc03, fc02), sub(fc01, fc02)
+            R["centre_un"], R["centre_c"] = 0.2, None
+        else:
+            R["centre_un"], R["diff_un_up"], R["diff_un_down"] = centred_contrasts(
+                pool, R["post_un"], n, args.seed + 7, legacy, "unbiased")
+            R["centre_c"], R["diff_c_up"], R["diff_c_down"] = centred_contrasts(
+                pool, R["post_c"], n, args.seed + 10, legacy, "conformist")
+            print(f"  contrasts centred on the posterior's migration value: "
+                  f"m = {R['centre_un']:g} (unbiased), m = {R['centre_c']:g} (conformist)")
 
     with open(cache, "wb") as fh:
         pickle.dump(R, fh)
+    for c in ckpts.values():
+        c.remove()
     for name, post in (("unbiased", R["post_un"]), ("conformist", R["post_c"])):
         print(f"\nJoint posterior ({name}):")
         print(pd.crosstab(post["m_const"], post["theta"]))

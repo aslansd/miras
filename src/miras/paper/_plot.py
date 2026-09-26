@@ -3,7 +3,9 @@ palettes (RColorBrewer Set1, colorRampPalette, scales::alpha)."""
 from __future__ import annotations
 
 import numpy as np
-from matplotlib.colors import to_rgba
+
+# matplotlib is imported inside the functions that need it, so the paper
+# modules (e.g. building Stan data) work with the core install alone.
 
 # RColorBrewer::brewer.pal(9, "Set1")
 SET1 = ["#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00",
@@ -15,6 +17,7 @@ def inv_logit(x):
 
 def color_ramp(colors, n):
     """R colorRampPalette(colors)(n): linear RGB interpolation."""
+    from matplotlib.colors import to_rgba
     rgb = np.array([to_rgba(c)[:3] for c in colors])
     xs = np.linspace(0, 1, len(colors))
     t = np.linspace(0, 1, n)
@@ -23,6 +26,7 @@ def color_ramp(colors, n):
 
 def alpha(color, a):
     """scales::alpha"""
+    from matplotlib.colors import to_rgba
     r, g, b, _ = to_rgba(color)
     return (r, g, b, a)
 

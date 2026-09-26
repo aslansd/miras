@@ -13,16 +13,18 @@ heavy: ~46,000 simulations of a few seconds each. Use --cores and/or reduce
 Usage:
     miras paper abm --cores 16                # full sweep + figure
     miras paper abm --plot-only               # re-plot from saved results
+
+An interrupted sweep (Ctrl-C) is checkpointed every two minutes; running the
+same command again resumes it, with results identical to an uninterrupted run.
 """
 import argparse
 import os
-import time
-from multiprocessing import Pool
 
 import numpy as np
 
 from ._model import paper_model
 from ._plot import SET1, alpha, shade_density, spawn_seeds
+from ._runner import Checkpoint, Progress, interrupted_message, make_pool
 from ..provenance import tracked
 
 MU = 0.05            # innovation rate (other constants: see paper_model)
@@ -44,24 +46,41 @@ def combo(theta, m):
 
 
 def _job(args):
-    c, n_steps, seed, burn_in, legacy = args
+    k, c, n_steps, seed, burn_in, legacy = args
     model = paper_model(theta=SWEEP_THETA[c], m=SWEEP_M[c], mu=MU, legacy_aging=legacy)
-    return c, model.simulate(n_steps, burn_in=burn_in, seed=seed, record=("fst",)).series["fst"]
+    return k, model.simulate(n_steps, burn_in=burn_in, seed=seed, record=("fst",)).series["fst"]
 
 
-def run_sweep(nsim, n_steps, cores, seed, burn_in, legacy):
+def run_sweep(nsim, n_steps, cores, seed, burn_in, legacy, checkpoint=None):
+    """All (theta, m) combinations x nsim simulations. Simulation k belongs to
+    combination k // nsim and has a seed fixed by k, so a resumed sweep gives
+    the same numbers as an uninterrupted one."""
     n_combo = len(SWEEP_THETA)
-    jobs = [(c, n_steps, s, burn_in, legacy) for c, s in
-            zip(np.repeat(np.arange(n_combo), nsim), spawn_seeds(seed, n_combo * nsim))]
+    n_jobs = n_combo * nsim
+    seeds = spawn_seeds(seed, n_jobs)
     result = np.full((n_combo, nsim, n_steps), np.nan, dtype=np.float32)
-    filled = np.zeros(n_combo, dtype=int)
-    t0 = time.time()
-    with Pool(cores) as pool:
-        for k, (c, fst) in enumerate(pool.imap_unordered(_job, jobs, chunksize=4), 1):
-            result[c, filled[c]] = fst
-            filled[c] += 1
-            if k % 100 == 0 or k == len(jobs):
-                print(f"  {k}/{len(jobs)} simulations ({time.time() - t0:.0f}s)", flush=True)
+    done = np.zeros(n_jobs, dtype=bool)
+    state = checkpoint.load() if checkpoint else None
+    if state is not None:
+        result, done = state["fst"], state["done"].astype(bool)
+        print(f"  resuming: {int(done.sum())}/{n_jobs} simulations already done", flush=True)
+    jobs = [(k, k // nsim, n_steps, seeds[k], burn_in, legacy) for k in np.flatnonzero(~done)]
+    progress = Progress(n_jobs, already=int(done.sum()))
+    try:
+        with make_pool(cores) as pool:
+            for k, fst in pool.imap_unordered(_job, jobs, chunksize=4):
+                result[k // nsim, k % nsim] = fst
+                done[k] = True
+                progress.tick()
+                if checkpoint and checkpoint.due():
+                    checkpoint.save(fst=result, done=done)
+    except KeyboardInterrupt:
+        if checkpoint:
+            checkpoint.save(fst=result, done=done)
+            print(interrupted_message(int(done.sum()), n_jobs, checkpoint.path))
+        raise
+    if checkpoint:
+        checkpoint.remove()
     return result
 
 
@@ -169,6 +188,8 @@ def main(argv=None):
     p.add_argument("--legacy-aging", action="store_true",
                    help="replicate the R ageing quirk (see README)")
     p.add_argument("--quick", action="store_true", help="tiny smoke-test run")
+    p.add_argument("--fresh", action="store_true",
+                   help="ignore a checkpoint from an interrupted run and start over")
     p.add_argument("--track", action="store_true", help="record the run with daftar")
     args = p.parse_args(argv)
     if args.quick:
@@ -182,8 +203,15 @@ def main(argv=None):
         else:
             print(f"Running {len(SWEEP_THETA)} parameter combinations x {args.nsim} simulations "
                   f"on {args.cores} cores ...")
+            from .. import __version__
+            ckpt = Checkpoint(os.path.join(args.outdir, "abm_checkpoint.npz"),
+                              {"workflow": "abm", "nsim": args.nsim, "n_steps": args.n_steps,
+                               "burn_in": args.n_burn_in, "seed": args.seed,
+                               "legacy_aging": args.legacy_aging, "version": __version__})
+            if args.fresh:
+                ckpt.remove()
             result = run_sweep(args.nsim, args.n_steps, args.cores, args.seed,
-                               args.n_burn_in, args.legacy_aging)
+                               args.n_burn_in, args.legacy_aging, checkpoint=ckpt)
             np.savez_compressed(res_path, fst=result, theta=SWEEP_THETA, m=SWEEP_M)
             run.add_output(res_path)
             print(f"Saved results to {res_path}")
