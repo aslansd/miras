@@ -4,8 +4,8 @@ message: >-
   (preferred citation below) as well as the software.
 title: "miras: cultural inheritance, simulated and interrogated"
 type: software
-version: 0.1.0
-date-released: 2026-09-24
+version: 0.1.1
+date-released: 2026-09-26
 license: Apache-2.0
 repository-code: "https://github.com/aslansd/miras"
 authors:

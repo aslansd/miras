@@ -1,5 +1,32 @@
 # Roadmap
 
+## Done in 0.1.1
+
+From the first full-scale run on a user's machine (see `TESTING.md`):
+convergence of every Stan fit is checked and failures are reported with the
+chains responsible; `--identify` leaves unconverged fits out; `--init-radius`
+and `--refit`; matplotlib imported lazily; an actionable message when CmdStan
+is missing; the ABM sweep and ABC checkpoint and resume exactly; progress lines
+estimate the time left; Ctrl-C exits with one line instead of a traceback per
+worker; ABC contrasts centred on the posterior. Details in `CHANGELOG.md`.
+
+## Next (0.1.2)
+
+1. **Evidence on stuck chains.** Refit the full-scale longitudinal data with
+   several seeds, with and without `--init-radius 0.5`, and record how often a
+   chain gets stuck. Change the default initialisation only if the evidence
+   supports it. Also check whether the original R/rstan fit shows the same
+   behaviour, to tell a property of the model from a property of the port.
+2. **Resumable `--identify`.** Each dataset takes about two hours; save each
+   finished fit so an interrupted run skips completed datasets, and run
+   datasets in parallel when there are cores to spare (each fit already uses
+   four).
+3. **Checkpoint the remaining long steps**: ABC posterior predictions and the
+   longitudinal posterior simulations (minutes rather than hours, so lower
+   priority).
+
+## Later
+
 Ordered by what most improves the one question miras exists to answer:
 *can this study design recover these parameters?*
 

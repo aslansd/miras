@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "miras"
-version = "0.1.0"
+version = "0.1.1"
 description = "Cultural inheritance, simulated and interrogated: agent-based models of cultural evolution and a check of whether your study design can recover their parameters."
 readme = "README.md"
 requires-python = ">=3.10"
