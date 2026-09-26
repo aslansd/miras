@@ -63,6 +63,12 @@ def as_simulator(sim):
     raise TypeError("simulator must be a ModelSimulator or a callable(params, rng)")
 
 
+def _ignore_sigint():
+    """Workers leave Ctrl-C to the main process (no traceback per worker)."""
+    import signal
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+
 def _call(args):
     sim, params, seed = args
     try:
@@ -79,7 +85,8 @@ def run_batch(sim, param_dicts, seeds, cores=1, chunksize=None):
         cores = os.cpu_count() or 1
     if cores > 1 and len(tasks) > 1:
         chunksize = chunksize or max(1, len(tasks) // (4 * cores))
-        with get_context("spawn" if os.name == "nt" else "fork").Pool(cores) as pool:
+        with get_context("spawn" if os.name == "nt" else "fork").Pool(
+                cores, initializer=_ignore_sigint) as pool:
             out = pool.map(_call, tasks, chunksize=chunksize)
     else:
         out = [_call(t) for t in tasks]
