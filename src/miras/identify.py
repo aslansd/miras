@@ -86,6 +86,9 @@ class IdentifiabilityReport:
             where = f" (where {f.where})" if f.where else ""
             lines.append(f"[{f.severity}] {f.id} {', '.join(f.params)}{where}")
             lines.append(f"    {f.what}")
+        for note in self.info.get("notes", []):
+            lines.append("")
+            lines.append(f"note: {note}")
         cov = [p["coverage90"] for p in self.parameters]
         if cov and min(cov) < 0.75:
             lines.append("")
@@ -120,6 +123,8 @@ class IdentifiabilityReport:
         for f in self.findings:
             where = f" *where {f.where}*" if f.where else ""
             out.append(f"- **{f.id}** ({f.severity}) `{'`, `'.join(f.params)}`{where}: {f.what}")
+        if self.info.get("notes"):
+            out += ["", "## Notes", ""] + [f"- {n}" for n in self.info["notes"]]
         return "\n".join(out) + "\n"
 
     def plot(self, path=None, pair=None):

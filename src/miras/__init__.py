@@ -4,7 +4,7 @@ Built on the workflow of Deffner, Fedorova, Andrews & McElreath (2024),
 "Bridging theory and data: A computational workflow for cultural evolution",
 PNAS 121(48). Please cite that paper when you use miras.
 """
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 from .engine import (AgeStructured, Conformity, Islands, Mixture, Model, Neutral,
                      PayoffBias, Result, WrightFisher)

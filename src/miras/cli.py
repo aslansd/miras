@@ -75,7 +75,11 @@ def main(argv=None):
         return 0
     cmd, rest = argv[0], argv[1:]
     if cmd == "demo":
-        return _demo(rest)
+        try:
+            return _demo(rest)
+        except KeyboardInterrupt:
+            print("Interrupted.", file=sys.stderr)
+            return 130
     if cmd == "doctor":
         return _doctor(rest)
     if cmd == "paper":
@@ -84,7 +88,11 @@ def main(argv=None):
             print(f"usage: miras paper {{{','.join(WORKFLOWS)}}} [options]  (add --help for options)")
             return 2
         module = importlib.import_module(WORKFLOWS[rest[0]])
-        return module.main(rest[1:])
+        try:
+            return module.main(rest[1:])
+        except KeyboardInterrupt:
+            print("Interrupted.", file=sys.stderr)
+            return 130                        # the conventional exit status for Ctrl-C
     print(f"unknown command '{cmd}'\n{__doc__}")
     return 2
 
