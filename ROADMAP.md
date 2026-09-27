@@ -10,7 +10,19 @@ is missing; the ABM sweep and ABC checkpoint and resume exactly; progress lines
 estimate the time left; Ctrl-C exits with one line instead of a traceback per
 worker; ABC contrasts centred on the posterior. Details in `CHANGELOG.md`.
 
-## Next (0.1.2)
+## Next for miras.commons
+
+1. **Run E1, E1b and E3** and write up which seeding strategies work under
+   which conditions, with the mechanism behind each result.
+2. **E2 with real group profiles** for a case you have in mind.
+3. **Sensitivity of the calibration (amendment A3):** how the E1 conclusions
+   move with the payoff-learning slope, conformity exponent and scarcity value.
+4. **Identifiability** (spec section): which field designs could tell apart
+   the mechanisms E1 finds decisive, using `miras.identify`.
+5. Variants listed in the spec: active rejection of owned traits (D4c, already
+   a switch), targeted first adopters (D3b), imposition by powerful groups (D8).
+
+## Next for the paper workflows (was 0.1.2)
 
 1. **Evidence on stuck chains.** Refit the full-scale longitudinal data with
    several seeds, with and without `--init-radius 0.5`, and record how often a

@@ -4,7 +4,9 @@
 Azerbaijani (*miras*). Cultural inheritance is what this package models.
 
 **Know whether your study can recover conformity and migration, before you
-collect data.**
+collect data.** And, new in 0.2.0, simulate how culturally different groups
+sharing a common-pool resource take up a resource-saving innovation
+(`miras.commons`).
 
 miras simulates cultural evolution with agent-based models, and then asks the
 question that decides whether a study is worth running: *given this design,
@@ -420,6 +422,73 @@ longer compiles); the model is unchanged.
 
 ---
 
+## Common-pool resources: `miras.commons` (new in 0.2.0)
+
+Several groups share one resource, such as water. An innovation cuts each
+adopter's consumption at a cost: a device, or a convention of using less.
+Groups differ in cultural tightness, in-group altruism, out-group
+parochialism, wealth and political power. The question: **to get the
+innovation widely adopted and the commons governed sustainably, which group
+should it start in, should it originate there or be introduced from outside,
+and when?**
+
+```python
+from miras.commons import CommonsModel, Group, Seeding
+
+groups = [Group(name="A", tightness=0.9, power=2.0), Group(name="B", tightness=0.1),
+          Group(name="C", parochialism=0.9)]
+model = CommonsModel(groups)
+result = model.run(500, Seeding(mode="introduce", group=1, timing="scarcity"), seed=1)
+print(result.outcomes())   # adoption, sustained or collapsed, reach, inequality, ...
+```
+
+Each step the store recharges, water is harvested (rationed under shortage,
+with a larger share for powerful groups), payoffs combine service, cost,
+sanctions from the group's norm and in-group valuation of saved water, and
+people learn from their own group or, via contact, prestige and a parochial
+filter, from others. Every mechanism has a switch, so any result can be traced
+to the mechanism behind it.
+
+```
+miras commons pilot                    # which regimes occur (a couple of minutes)
+miras commons e1 --cores 8             # main experiment: 3,904 cells x 50 runs, about 2 h on 8 cores
+miras commons e1 --background low      # E1b: background groups low (or high)
+miras commons scenario groups.json     # E2: your own groups, each seeded in each mode
+miras commons e1 --off tight_sanctions # E3: knockouts, on any of the above
+```
+
+Outputs: one CSV row per run, a summary CSV (mean and 95% interval per cell)
+and a Markdown report with the best seed groups and the main effect of each
+attribute, per condition. Runs checkpoint and resume exactly, like the paper
+workflows. A scenario file looks like:
+
+```json
+{"groups": [{"name": "A", "size": 300, "tightness": 0.9, "power": 2.0},
+            {"name": "B", "size": 150, "tightness": 0.2, "parochialism": 0.8}],
+ "resource": {"rho": 0.8},
+ "timings": ["scarcity"]}
+```
+
+The model, step by step, with every default, is in `docs/commons-model.md`.
+
+**Checked before use.** Nine verification checks with known answers pass (`tests/test_commons.py`):
+the stock drains and the first shortage arrives at the exact predicted step;
+universal adoption sustains the commons if and only if ρ ≥ 1 − δ; rationing
+conserves water and honours power-weighted shares; adoption declines as the
+replicator equation predicts when water is plentiful; under rationing, adoption
+settles where the shortage equals the cost; conformity alone removes
+minorities and fixes majorities; identical groups make the seed group
+irrelevant; fully parochial groups never take up another group's trait; and
+runs reproduce and resume exactly.
+
+**Calibration matters, and is documented.** The first pilot showed that with
+the draft defaults the innovation died in every moderately tight population,
+and that seeding during plenty failed whatever the group. The defaults were
+recalibrated so a mid-level population sits near its tipping point, and
+seeding timing became an experimental factor (amendments A1 to A4 in the model
+specification). Results are conditional on that calibration; `miras commons e1
+--background low|high` and knockouts are the checks.
+
 ## Provenance
 
 An identifiability report is an experiment: it depends on seeds, priors,
@@ -492,7 +561,7 @@ pytest -q                      # engine vs. theory, detectors vs. ground truth
 pytest -q --run-slow           # also fits Stan models (needs CmdStan)
 ```
 
-Expected: `91 passed, 1 skipped` (the skip is the slow Stan test). The core
+Expected: `110 passed, 1 skipped` (the skip is the slow Stan test). The core
 install (numpy only) also works: tests that need matplotlib, pandas or daftar
 skip themselves.
 

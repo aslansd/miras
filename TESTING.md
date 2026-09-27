@@ -2,7 +2,7 @@
 
 ```
 pip install -e ".[dev]"   # from the source folder; or: pip install "miras[all]" pytest
-pytest -q                 # fast suite, under a minute: 91 passed, 1 skipped
+pytest -q                 # fast suite, under a minute: 110 passed, 1 skipped
 pytest -q --run-slow      # also fits Stan models (needs CmdStan, ~10 min)
 ```
 
@@ -47,6 +47,16 @@ sweep resumed from a half-finished checkpoint must equal the uninterrupted
 sweep bit for bit. The same was checked by hand with a real Ctrl-C (SIGINT)
 halfway through a 462-simulation sweep.
 
+**`miras.commons` against known results** (`tests/test_commons.py`). The
+nine verification checks of the model specification (V1 to V9): resource
+bookkeeping and the exact step of the first shortage, the sustainability
+threshold ρ ≥ 1 − δ, water-filling allocation, the replicator decline under
+plenty, the shortage-equals-cost equilibrium under rationing, conformity
+fixation, symmetry between identical groups, containment by full
+parochialism, and exact reproduction and resumption. Also: the no-innovation
+reference has no adopters, and ownership bias slows introduction into a
+parochial seed group.
+
 **Everything else**: engine invariants (group sizes conserved under
 migration, models drawn from the learner's own group, exact conformity
 probabilities, reproducibility from a seed), inference (ABC recovers an
@@ -64,7 +74,7 @@ Apple Silicon Mac (Python 3.11, CmdStan 2.40).
 | # | Command | Expected | 0.1.0 result |
 |---|---|---|---|
 | 1 | `miras doctor` | every line `ok` | ok |
-| 2 | `pytest -q` | 91 passed, 1 skipped (0.1.1) | 76 passed, 1 skipped |
+| 2 | `pytest -q` | 110 passed, 1 skipped (0.2.0) | 76 passed, 1 skipped |
 | 3 | the README's thirty-second example | `NOT_IDENTIFIED migration` in a region around 1.4 < θ < 2.2; θ contraction about 0.8 | contraction 0.82 / 0.39, region 1.46–2.2 |
 | 4 | `miras paper dags` | causal effect near 2 (seed 1: 1.87) | 1.87, identical to Linux |
 | 5 | `miras paper abm` | Fig. 3 pattern: conformity keeps F_ST high, migration lowers it, largest causal effect at θ = 1.4 | ok, 7.4 h |

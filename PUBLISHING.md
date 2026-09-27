@@ -49,7 +49,7 @@ pip install --no-cache-dir -U miras
 pip install "miras[all]" pytest
 install_cmdstan                  # once per machine; see README "Installing CmdStan"
 miras doctor                     # every line should say ok
-pytest -q                        # 91 passed, 1 skipped
+pytest -q                        # 110 passed, 1 skipped
 ```
 
 Then the end-to-end checks in `TESTING.md` (the README example and the four

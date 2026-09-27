@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.2.0 — 2026-09-27
+
+**New: `miras.commons`**, a model of culturally different groups sharing a
+common-pool resource, and of how to seed a resource-saving innovation so that
+it spreads (the miras.commons model specification, with amendments A1 to A4).
+- Groups differ in tightness (conformity, sanctions, caution), in-group
+  altruism, out-group parochialism, wealth, political power and contact; the
+  innovation originates in a group or is introduced from outside (ownership
+  tags, subsidy, outside demonstrators), during plenty or at scarcity.
+- Resource with recharge and storage, water-filling allocation under shortage
+  (power-weighted between groups, equal quotas within), efficiency or
+  sufficiency innovations.
+- Experiments E1 (seed-group factorial), E1b (background levels), E2 (your own
+  scenarios from JSON) and E3 (mechanism knockouts): `miras commons
+  {pilot,e1,scenario}`, with CSV and Markdown outputs, exact checkpoint/resume
+  and daftar tracking.
+- Verification checks V1 to V9 against known results (`tests/test_commons.py`).
+
+**Engine**
+- `miras.engine.groups.GroupedPopulation`: groups of unequal size, and model
+  choice across groups by contact, prestige and a parochial filter;
+  `water_fill` for proportional allocation with caps. The equal-sized
+  `Population` behind the paper models is unchanged.
+- The long-run helpers moved to `miras.runner` (the old `miras.paper._runner`
+  still works).
+
+
 ## 0.1.1 — 2026-09-26
 
 Fixes from the first full-scale end-to-end check of 0.1.0 (macOS, 8 cores).
