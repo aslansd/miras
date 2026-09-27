@@ -2,6 +2,7 @@
 
     miras demo                       # can F_ST alone tell conformity from migration?
     miras paper {dags,abm,longitudinal,abc} [options]
+    miras commons {pilot,e1,scenario} [options]   # common-pool resource experiments
     miras doctor                     # which optional components work here
 """
 from __future__ import annotations
@@ -82,6 +83,13 @@ def main(argv=None):
             return 130
     if cmd == "doctor":
         return _doctor(rest)
+    if cmd == "commons":
+        from .commons.cli import main as commons_main
+        try:
+            return commons_main(rest)
+        except KeyboardInterrupt:
+            print("Interrupted.", file=sys.stderr)
+            return 130
     if cmd == "paper":
         from .paper import WORKFLOWS
         if not rest or rest[0] not in WORKFLOWS:
