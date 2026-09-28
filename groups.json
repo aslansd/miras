@@ -1,4 +1,0 @@
-{"groups": [{"name": "A", "size": 300, "tightness": 0.9, "power": 2.0},
-            {"name": "B", "size": 150, "tightness": 0.2, "parochialism": 0.8}],
- "resource": {"rho": 0.8},
- "timings": ["scarcity"]}
