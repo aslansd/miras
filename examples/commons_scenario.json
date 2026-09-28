@@ -1,0 +1,45 @@
+{
+  "groups": [
+    {
+      "name": "Highland",
+      "size": 300,
+      "tightness": 0.8,
+      "altruism": 0.6,
+      "parochialism": 0.7,
+      "wealth": 1.5,
+      "power": 2.0,
+      "contact": 0.1
+    },
+    {
+      "name": "Valley",
+      "size": 200,
+      "tightness": 0.3,
+      "altruism": 0.7,
+      "parochialism": 0.3,
+      "wealth": 1.0,
+      "power": 1.0,
+      "contact": 0.2
+    },
+    {
+      "name": "Riverside",
+      "size": 150,
+      "tightness": 0.5,
+      "altruism": 0.4,
+      "parochialism": 0.5,
+      "wealth": 0.6,
+      "power": 0.5,
+      "contact": 0.3
+    }
+  ],
+  "resource": {
+    "rho": 0.7
+  },
+  "innovation": {
+    "saving": 0.4,
+    "cost": 0.1
+  },
+  "timings": [
+    "plenty",
+    "scarcity"
+  ]
+}
