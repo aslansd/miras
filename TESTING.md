@@ -2,7 +2,7 @@
 
 ```
 pip install -e ".[dev]"   # from the source folder; or: pip install "miras[all]" pytest
-pytest -q                 # fast suite, under a minute: 110 passed, 1 skipped
+pytest -q                 # fast suite, under a minute: 130 passed, 1 skipped
 pytest -q --run-slow      # also fits Stan models (needs CmdStan, ~10 min)
 ```
 
@@ -57,6 +57,18 @@ parochialism, and exact reproduction and resumption. Also: the no-innovation
 reference has no adopters, and ownership bias slows introduction into a
 parochial seed group.
 
+**`miras.commons` tools from 0.2.1** (`tests/test_commons_v021.py`):
+one-attribute backgrounds change only the named attribute and reject unknown
+names or levels; condition filters give exactly the expected cells; summaries
+written by 0.2.0 still build and analyse; `adoption_gap` equals mean adoption
+minus A*; every kind of scenario-file mistake (missing file, invalid JSON, empty
+or duplicate groups, unknown fields in any section, unknown timings) gives a
+one-line message and exit status 2, never a traceback; the example scenario is
+valid; and `miras commons analyze` produces every section, for one file and
+for a comparison of several. The analysis was also checked by hand against
+the 0.2.0 runs: its tables reproduce the numbers computed directly from the
+summaries.
+
 **Everything else**: engine invariants (group sizes conserved under
 migration, models drawn from the learner's own group, exact conformity
 probabilities, reproducibility from a seed), inference (ABC recovers an
@@ -74,7 +86,7 @@ Apple Silicon Mac (Python 3.11, CmdStan 2.40).
 | # | Command | Expected | 0.1.0 result |
 |---|---|---|---|
 | 1 | `miras doctor` | every line `ok` | ok |
-| 2 | `pytest -q` | 110 passed, 1 skipped (0.2.0) | 76 passed, 1 skipped |
+| 2 | `pytest -q` | 130 passed, 1 skipped (0.2.1) | 76 passed, 1 skipped |
 | 3 | the README's thirty-second example | `NOT_IDENTIFIED migration` in a region around 1.4 < θ < 2.2; θ contraction about 0.8 | contraction 0.82 / 0.39, region 1.46–2.2 |
 | 4 | `miras paper dags` | causal effect near 2 (seed 1: 1.87) | 1.87, identical to Linux |
 | 5 | `miras paper abm` | Fig. 3 pattern: conformity keeps F_ST high, migration lowers it, largest causal effect at θ = 1.4 | ok, 7.4 h |
@@ -100,3 +112,27 @@ Notes for reading the output:
 - In 0.1.0, interrupting a long run with Ctrl-C printed a `KeyboardInterrupt`
   traceback from every worker. From 0.1.1 it prints one line saying where
   progress was saved.
+
+## End-to-end checks for `miras.commons`
+
+Run on an 8-core Apple Silicon Mac with miras 0.2.0 (September 2026). The
+expected values are what those runs gave; the "sustained" shares are averages
+over 50 runs per cell, so expect differences of a few percentage points on
+another machine or seed, not changes of direction.
+
+| # | Command | Time | Expected | 0.2.0 result |
+|---|---|---|---|---|
+| C1 | `miras commons pilot` | 2 min | no innovation: 0% sustained, shortage exactly 0.150 (ρ 0.85) and 0.300 (ρ 0.7); every group seeded at scarcity under ρ 0.7: 100% | as expected; closely matches the development pilot |
+| C2 | `miras commons e1 --cores 8` | 1 h 45 min | ρ 0.85: 0% sustained from any single seed; ρ 0.7: about 25%, best profiles about 95%; tightness effect about −0.44 | as expected (see `docs/commons-results-0.2.0.md`) |
+| C3 | `miras commons e1 --background low` | 2 h 07 min | 0% sustained, but a smaller adoption gap than C2 | 0% sustained; adoption gap −0.27 vs −0.43 |
+| C4 | `miras commons e1 --off tight_sanctions` | about 1 h 45 min | every-group seeding under ρ 0.7 falls from about 96% to about 9%; tightness effect survives (about −0.40) | as expected |
+| C5 | `miras commons scenario groups.json` | under a minute | a report ranking seed groups | 0.2.0 failed with a traceback when the file was missing; 0.2.1 prints one line saying how to create it (`miras commons example > groups.json`) |
+| C6 | `miras commons analyze commons_output/e1_summary.csv commons_output/e1b-low_summary.csv commons_output/e1-off-tight_sanctions_summary.csv` | seconds | the tables in `docs/commons-results-0.2.0.md` | new in 0.2.1 |
+| C7 | interrupt any `miras commons e1` with Ctrl-C, then rerun it | | `resuming: k/N runs already done`, identical results | checked in development (`test_v9_resumed_experiment_is_identical`) |
+
+Notes for reading the output:
+
+- The binary `sustained` outcome can be 0% while a lot is happening; read it
+  together with `adoption_gap` (0.2.1) and the adoption columns.
+- A knockout run is compared with the matching E1 run by `analyze`; with
+  `--rho 0.7`, compare against E1 restricted the same way (`analyze ... --rho 0.7`).

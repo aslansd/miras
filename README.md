@@ -439,7 +439,7 @@ groups = [Group(name="A", tightness=0.9, power=2.0), Group(name="B", tightness=0
           Group(name="C", parochialism=0.9)]
 model = CommonsModel(groups)
 result = model.run(500, Seeding(mode="introduce", group=1, timing="scarcity"), seed=1)
-print(result.outcomes())   # adoption, sustained or collapsed, reach, inequality, ...
+print(result.outcomes())   # adoption, sustained or collapsed, adoption gap, reach, inequality, ...
 ```
 
 Each step the store recharges, water is harvested (rationed under shortage,
@@ -447,20 +447,37 @@ with a larger share for powerful groups), payoffs combine service, cost,
 sanctions from the group's norm and in-group valuation of saved water, and
 people learn from their own group or, via contact, prestige and a parochial
 filter, from others. Every mechanism has a switch, so any result can be traced
-to the mechanism behind it.
+to the mechanism behind it. The model, step by step, with every default, is in
+`docs/commons-model.md`; the reasoning behind each design choice is in the
+model specification (with amendments A1 to A4).
+
+### Commands
 
 ```
-miras commons pilot                    # which regimes occur (a couple of minutes)
-miras commons e1 --cores 8             # main experiment: 3,904 cells x 50 runs, about 2 h on 8 cores
-miras commons e1 --background low      # E1b: background groups low (or high)
-miras commons scenario groups.json     # E2: your own groups, each seeded in each mode
-miras commons e1 --off tight_sanctions # E3: knockouts, on any of the above
+miras commons pilot                            # which regimes occur (a couple of minutes)
+miras commons e1 --cores 8                     # E1: 3,904 cells x 50 runs (~1 h 45 min on 8 cores)
+miras commons e1 --background tightness=low    # E1b: one background attribute changed (0.2.1)
+miras commons e1 --rho 0.7 --off power_share   # E3: a knockout, severe stress only (~50 min)
+miras commons example > groups.json            # a scenario file to edit (0.2.1)
+miras commons scenario groups.json             # E2: your own groups, each seeded in each mode
+miras commons analyze commons_output/e1_summary.csv commons_output/e1-off-power_share_summary.csv
 ```
 
-Outputs: one CSV row per run, a summary CSV (mean and 95% interval per cell)
-and a Markdown report with the best seed groups and the main effect of each
-attribute, per condition. Runs checkpoint and resume exactly, like the paper
-workflows. A scenario file looks like:
+- `--background` takes `low`, `mid` or `high` (all five background attributes)
+  or `attribute=level[,attribute=level]` to change only the named ones.
+- `--rho`, `--contact` and `--timing` restrict E1 to some conditions; the
+  output files are named after them (e.g. `e1-rho0.7-off-power_share_summary.csv`).
+- `--off` switches mechanisms off: `tight_conformity`, `tight_sanctions`,
+  `tight_caution`, `ingroup_value`, `outgroup_filter`, `ownership_bias`,
+  `ownership_rejection`, `wealth_cost`, `power_prestige`, `power_share`.
+- Every run writes one CSV row per run, a summary CSV (mean and 95% interval
+  per cell) and a Markdown report; runs checkpoint and resume exactly.
+- `analyze` turns one or more summaries into tables: references, main
+  effects of each seed attribute, where adoption happens by power, tightness by
+  power, introduce versus originate by parochialism, scarcity versus plenty,
+  the best seed groups, and (for several files) effect sizes side by side.
+
+A scenario file (`miras commons example` prints a fuller one):
 
 ```json
 {"groups": [{"name": "A", "size": 300, "tightness": 0.9, "power": 2.0},
@@ -469,7 +486,66 @@ workflows. A scenario file looks like:
  "timings": ["scarcity"]}
 ```
 
-The model, step by step, with every default, is in `docs/commons-model.md`.
+Attributes left out take their defaults (size 200, tightness, altruism and
+parochialism 0.5, wealth and power 1, contact 0.1). A mistake in the file is
+reported in one line saying what to change.
+
+### What the first runs show (0.2.0, September 2026)
+
+From the first full runs on an 8-core Mac: E1 (mid background), E1b with all
+five background attributes low, and E3 with sanctions switched off. The full
+tables are in `docs/commons-results-0.2.0.md`; regenerate them with
+`miras commons analyze`. Numbers are averages over cells of 50-run means and
+are conditional on the calibration (amendment A3); the comparisons are the
+robust part, not the exact percentages.
+
+1. **Under mild water stress (ρ = 0.85), no single seed group sustains the
+   commons**, in any mode, timing or condition. Only seeding every group does
+   (54 to 72% of runs when seeded at scarcity).
+2. **Under severe stress (ρ = 0.7) the seed group matters.** Averaged over
+   profiles a single seed sustains the commons in about 25% of runs; the best
+   profiles in about 95%.
+3. **Tight groups are poor places to start.** Sustained share by seed
+   tightness, low / mid / high: 45% / 30% / 1%. The effect survives with
+   sanctions switched off (−0.40 instead of −0.44), so it comes from
+   conformity and caution rather than punishment; it keeps its direction with a
+   low background (−0.24 on mean adoption).
+4. **Sanctions protect what is already widespread.** Without them, seeding
+   every group under severe stress sustains the commons in 9% of runs instead
+   of 96%, while single seeds do slightly better and, under mild stress,
+   sometimes succeed. Sanctions hinder the start and hold the finish.
+5. **Parochialism matters only when the innovation comes from outside**
+   (−0.14 on the sustained share when introduced, 0.00 when originating): the
+   ownership mechanism.
+6. **Power is non-monotonic** (0% / 46% / 29% for low / mid / high). A
+   low-power group adopts (40%) but no other group copies it; a high-power group
+   adopts less itself. The likely reason is who gets the water in a shortage:
+   learners compare utilities, and a low-power group's members look worse off.
+   This reading is a hypothesis until the `power_share` knockout is run.
+7. **Best origin under severe stress:** a loose, altruistic, mid-power group
+   (sustained in about 95% of runs, originating or introduced).
+8. **The low background (E1b) sustains nothing, but not because nothing
+   spreads**: adoption outside the seed group is higher than with a mid
+   background (61% vs 43% under severe stress, seeded at scarcity, high contact) and stalls short of the threshold the commons needs
+   (adoption gap −0.27 vs −0.43). That background changed all five attributes
+   at once (poorer, less altruistic, less powerful and looser), so it cannot say
+   which one matters; 0.2.1 adds one-attribute backgrounds for that.
+
+### What comes next
+
+The plan, in order (details in `ROADMAP.md`):
+
+1. **Knockouts to explain findings 3 and 6**: `power_share`,
+   `power_prestige`, `tight_conformity`, `tight_caution`, and
+   `ownership_bias` to confirm finding 5. Each under severe stress only
+   (`--rho 0.7`, about 50 minutes), then compared with `analyze`.
+2. **One-attribute backgrounds (E1b)**: `--background tightness=low`,
+   `tightness=high`, `wealth=low`, `altruism=low` and `power=high`, to see which
+   findings depend on the population the seed group sits in.
+3. **Real groups (E2)** for a case you have in mind.
+4. **Calibration sensitivity (amendment A3)**, then the **identifiability
+   study**: which field designs could tell apart the mechanisms these runs
+   find decisive.
 
 **Checked before use.** Nine verification checks with known answers pass (`tests/test_commons.py`):
 the stock drains and the first shortage arrives at the exact predicted step;
@@ -486,8 +562,7 @@ the draft defaults the innovation died in every moderately tight population,
 and that seeding during plenty failed whatever the group. The defaults were
 recalibrated so a mid-level population sits near its tipping point, and
 seeding timing became an experimental factor (amendments A1 to A4 in the model
-specification). Results are conditional on that calibration; `miras commons e1
---background low|high` and knockouts are the checks.
+specification). Results are conditional on that calibration.
 
 ## Provenance
 
@@ -561,7 +636,7 @@ pytest -q                      # engine vs. theory, detectors vs. ground truth
 pytest -q --run-slow           # also fits Stan models (needs CmdStan)
 ```
 
-Expected: `110 passed, 1 skipped` (the skip is the slow Stan test). The core
+Expected: `130 passed, 1 skipped` (the skip is the slow Stan test). The core
 install (numpy only) also works: tests that need matplotlib, pandas or daftar
 skip themselves.
 

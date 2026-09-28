@@ -1,7 +1,7 @@
 # Publishing
 
-How miras 0.1.0 was built, uploaded and checked, and what to do for the
-next release.
+How miras is built, uploaded and checked (first used for 0.1.0; the same
+procedure applies to every release), and what to check for the 0.2 series.
 
 ## 1. Build
 
@@ -49,7 +49,7 @@ pip install --no-cache-dir -U miras
 pip install "miras[all]" pytest
 install_cmdstan                  # once per machine; see README "Installing CmdStan"
 miras doctor                     # every line should say ok
-pytest -q                        # 110 passed, 1 skipped
+pytest -q                        # 130 passed, 1 skipped (0.2.1)
 ```
 
 Then the end-to-end checks in `TESTING.md` (the README example and the four
@@ -60,8 +60,31 @@ paper workflows).
 - Bump the version in **three** places: `pyproject.toml`,
   `src/miras/__init__.py` and `CITATION.cff` (`version` and `date-released`).
 - Add a `CHANGELOG.md` entry.
+- If a default in `miras/commons/model.py` changed, regenerate the model
+  reference: `python docs/_generate_commons_model.py` (a test fails if it is
+  stale).
 - Run `pytest -q --run-slow` (needs CmdStan).
 - Build, check and upload as above.
+
+## The 0.2 series
+
+0.2.0 added `miras.commons`; 0.2.1 adds the analysis tools and fixes found in
+its first full runs. Nothing in 0.2.1 changes a simulation result: the same
+command and seed give the same numbers as 0.2.0 (checked by the unchanged V1
+to V9 tests and the resume test). 0.2.1 summaries have two extra columns
+(`a_star`, `adoption_gap`); `analyze` reads summaries from both versions.
+
+Before uploading 0.2.1:
+
+1. `pytest -q` in a clean environment with `pip install "miras[all]" pytest`:
+   130 passed, 1 skipped.
+2. `miras commons example > /tmp/g.json && miras commons scenario /tmp/g.json --reps 3`
+   finishes and prints a report.
+3. `miras commons analyze` on the 0.2.0 summaries reproduces
+   `docs/commons-results-0.2.0.md`.
+
+If 0.2.0 was never uploaded, uploading only 0.2.1 is fine: versions need not
+be consecutive on PyPI.
 
 ## PyPI releases are immutable
 

@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.2.1 — 2026-09-28
+
+From the first full runs of `miras.commons` on a user's machine (pilot, E1,
+E1b with a low background, E3 without sanctions, and a scenario).
+
+**Experiments**
+- One attribute at a time for the background groups (E1b):
+  `--background tightness=low` or `--background tightness=low,power=high`;
+  `low`, `mid` and `high` still set all five. The 0.2.0 E1b changed all five
+  attributes at once, so it could not say which one mattered.
+- Condition filters for `miras commons e1`: `--rho`, `--contact`, `--timing`.
+  A knockout under severe stress only (`--rho 0.7 --off power_share`) takes
+  half the time of a full E1. Output files are named after the filters.
+- Two continuous outcomes in every run: `a_star` (the adoption share the
+  commons needs) and `adoption_gap` (mean adoption over the last 100 steps
+  minus `a_star`). The binary `sustained` hid that the low-background E1b
+  spread the innovation widely but stalled just short of the threshold.
+
+**Analysis**
+- `miras commons analyze SUMMARY.csv [MORE ...]`: overview of sustained
+  shares and adoption gaps; main effects of each seed attribute; where
+  adoption happens by the seed group's power; tightness by power; introduce
+  minus originate by parochialism; scarcity minus plenty; the best seed groups;
+  and, for several files, effect sizes side by side on the sustained share and
+  on mean adoption (backgrounds for E1b, knockouts for E3). Reads 0.2.0
+  summaries too. Numpy only. `--out` writes the report to a file.
+- `docs/commons-results-0.2.0.md`: that analysis applied to the 0.2.0 runs.
+
+**Scenarios**
+- A missing or malformed scenario file now gives one line saying what to
+  change (missing file, invalid JSON, empty or duplicate groups, unknown
+  fields in any section, unknown timings) instead of a traceback; exit status 2.
+- `miras commons example > groups.json` prints an example scenario with three
+  groups; the same file ships as `examples/commons_scenario.json`.
+
+**Tests**: 20 new (`tests/test_commons_v021.py`); 130 passed, 1 skipped.
+
+
 ## 0.2.0 — 2026-09-27
 
 **New: `miras.commons`**, a model of culturally different groups sharing a
