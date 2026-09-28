@@ -164,6 +164,10 @@ class CommonsResult:
             "seed_group_adoption": float(self.adoption[-1, seed]),
             "other_groups_adoption": (float(self.adoption[-1, others] @ self.sizes[others]
                                             / self.sizes[others].sum()) if len(others) else np.nan),
+            # continuous view of sustainability (0.2.1): how far adoption ends
+            # above (+) or below (-) the share the commons needs
+            "a_star": float(self.a_star),
+            "adoption_gap": float(mean_last - self.a_star),
         }
 
 

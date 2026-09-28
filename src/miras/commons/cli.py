@@ -1,10 +1,12 @@
 """Command line for miras.commons.
 
-    miras commons pilot                    # regimes at a glance (a minute or two)
-    miras commons e1 --cores 8             # the main experiment (E1)
-    miras commons e1 --background low      # E1b: background groups low (or high)
-    miras commons scenario groups.json     # E2: your own groups
-    ... --off tight_sanctions,power_share  # E3: knockouts, on any of the above
+    miras commons pilot                          # regimes at a glance (a minute or two)
+    miras commons e1 --cores 8                   # the main experiment (E1)
+    miras commons e1 --background tightness=low  # E1b: one background attribute at a time
+    miras commons e1 --rho 0.7 --off power_share # E3: a knockout, severe stress only
+    miras commons example > groups.json          # a scenario file to edit
+    miras commons scenario groups.json           # E2: your own groups
+    miras commons analyze commons_output/e1_summary.csv [more summaries ...]
 
 Long runs checkpoint every two minutes and on Ctrl-C; rerun the same command
 to resume (identical results), or add --fresh to start over.
@@ -71,14 +73,28 @@ def _run(cells, args, label, config=None):
 def cmd_e1(argv):
     p = argparse.ArgumentParser(prog="miras commons e1", description="E1 (and E1b, E3).")
     _common(p)
-    p.add_argument("--background", choices=ex.LEVEL_NAMES, default="mid",
-                   help="level of the four background groups (E1b: low or high)")
+    p.add_argument("--background", default="mid",
+                   help="background groups: low, mid or high (all five attributes), or "
+                        "attribute=level[,attribute=level] for one at a time, e.g. tightness=low")
+    p.add_argument("--rho", type=float, nargs="+", help="only these water-stress levels, e.g. 0.7")
+    p.add_argument("--contact", type=float, nargs="+", help="only these contact levels")
+    p.add_argument("--timing", nargs="+", choices=("plenty", "scarcity"), help="only these timings")
     p.add_argument("--quick", action="store_true", help="a tiny smoke test (2 reps, 100 steps)")
     args = p.parse_args(argv)
     if args.quick:
         args.reps, args.steps = 2, 100
-    cells = ex.e1_cells(background=args.background)
-    label = "e1" if args.background == "mid" else f"e1b-{args.background}"
+    try:
+        levels = ex.parse_background(args.background)
+        cells = ex.e1_cells(background=args.background, rho=args.rho, contact=args.contact,
+                            timing=args.timing)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    bg = ex.background_label(levels)
+    label = "e1" if bg == "mid" else f"e1b-{bg}"
+    for name, vals in (("rho", args.rho), ("contact", args.contact), ("timing", args.timing)):
+        if vals:
+            label += f"-{name}" + "_".join(f"{v:g}" if isinstance(v, float) else v for v in vals)
     _run(cells, args, label + ("-quick" if args.quick else ""))
     return 0
 
@@ -89,7 +105,11 @@ def cmd_scenario(argv):
     p.add_argument("config", help="JSON file with groups (and optionally resource, innovation, learning)")
     _common(p)
     args = p.parse_args(argv)
-    config = ex.load_config(args.config)
+    try:
+        config = ex.load_config(args.config)
+    except ex.ScenarioError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
     name = os.path.splitext(os.path.basename(args.config))[0]
     _, report = _run(ex.scenario_cells(config), args, f"scenario-{name}", config=config)
     print("\n" + report)
@@ -121,9 +141,38 @@ def cmd_pilot(argv):
     return 0
 
 
+def cmd_example(argv):
+    """Print an example scenario file: miras commons example > groups.json"""
+    sys.stdout.write(ex.example_scenario_json())
+    return 0
+
+
+def cmd_analyze(argv):
+    from .analysis import analyze
+    p = argparse.ArgumentParser(prog="miras commons analyze",
+                                description="Tables from *_summary.csv files; several files are "
+                                            "compared side by side (E1b backgrounds, E3 knockouts).")
+    p.add_argument("summaries", nargs="+", help="summary CSVs; the first is analysed in detail")
+    p.add_argument("--rho", type=float, nargs="+", help="only these water-stress levels")
+    p.add_argument("--out", help="also write the report to this file")
+    args = p.parse_args(argv)
+    missing = [f for f in args.summaries if not os.path.exists(f)]
+    if missing:
+        print(f"error: not found: {', '.join(missing)}", file=sys.stderr)
+        return 2
+    report = analyze(args.summaries, rho=args.rho)
+    print(report)
+    if args.out:
+        with open(args.out, "w") as fh:
+            fh.write(report)
+        print(f"Written: {args.out}")
+    return 0
+
+
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
-    cmds = {"pilot": cmd_pilot, "e1": cmd_e1, "scenario": cmd_scenario}
+    cmds = {"pilot": cmd_pilot, "e1": cmd_e1, "scenario": cmd_scenario,
+            "analyze": cmd_analyze, "example": cmd_example}
     if not argv or argv[0] not in cmds:
         print(__doc__)
         return 0 if not argv or argv[0] in ("-h", "--help") else 2
