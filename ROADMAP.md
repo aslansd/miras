@@ -14,95 +14,110 @@ worker; ABC contrasts centred on the posterior. Details in `CHANGELOG.md`.
 
 - **0.2.0**: the model, experiments E1/E1b/E2/E3, verification checks V1 to
   V9, and the specification amendments A1 to A4 from the pilot.
-- **First full runs (September 2026, 8-core Mac)**: pilot; E1 (195,200 runs,
-  1 h 45 min); E1b with a low background (2 h 07 min); E3 without sanctions;
-  a toy scenario. Findings in the README and `docs/commons-results-0.2.0.md`.
 - **0.2.1**: one-attribute backgrounds, condition filters, continuous
   outcomes (`adoption_gap`), `miras commons analyze`, scenario validation and
-  `miras commons example`.
+  `miras commons example`. Gives the same numbers as 0.2.0 for the same seed.
+- **Fourteen full runs (September–October 2026, 8-core Mac)**: pilot; E1;
+  E3 without sanctions (all conditions); E1b with all five background
+  attributes low and with tightness low (all conditions); and, under severe
+  stress (`--rho 0.7`), five knockouts and five one-attribute backgrounds; plus
+  the example scenario. Results: README ("What the runs show"),
+  `docs/commons-results-0.2.0.md`, `docs/commons-results-knockouts.md`,
+  `docs/commons-results-backgrounds.md`.
+
+### What the planned steps found
+
+Each step below was planned in the previous version of this roadmap; the
+outcome is recorded against what was expected.
+
+1. **Explain the power effect.** Ran `--off power_share` and
+   `--off power_prestige`. *Expected:* if the water-share reading is right,
+   equal shares remove the effect and prestige does not matter. *Found:*
+   exactly that. Power effect on the sustained share +0.29 → +0.06 with equal
+   shares, unchanged without prestige; a weak seed group goes from 0% to 41%.
+   **Confirmed: power acts through the allocation of scarce water.**
+2. **Explain the tightness effect.** Ran `--off tight_conformity` and
+   `--off tight_caution` (sanctions had been ruled out by the earlier E3).
+   *Found:* without conformity the effect disappears (−0.44 → −0.06); without
+   caution it stays (−0.41). **Confirmed: conformity, not punishment or
+   caution, makes tight groups poor starting points.**
+3. **Confirm the ownership mechanism.** Ran `--off ownership_bias`.
+   *Expected:* the parochialism effect on introduction disappears. *Found:*
+   −0.14 → −0.04, and introduction succeeds about twice as often (49% vs 25%).
+   **Confirmed.**
+4. **One-attribute backgrounds.** Ran tightness low and high, wealth low,
+   altruism low and power high. *Found:* the surrounding groups matter more
+   than the seed group. Tight neighbours block everything (0%, even with every
+   group seeded); loose neighbours raise single-seed success to 41% and make
+   mild stress winnable; poorer or less altruistic neighbours almost block
+   single seeds (4%, 0%); with more powerful neighbours only an equally powerful
+   seed group succeeds, so **power is relative**. The direction of the
+   tightness and altruism effects held in every background where anything
+   succeeded.
+
+Not yet done from the earlier plan: E2 with real groups (only the example
+scenario was run), calibration sensitivity, identifiability.
 
 ## Next for miras.commons
 
-Each step names the question it answers and the commands to run. All
-knockouts and backgrounds are run under severe stress only (`--rho 0.7`),
-where the seed group matters; mild stress showed no single-seed success in E1.
+All of steps 1 to 3 need no new code.
 
-### 1. Explain the power effect (finding 6)
+### 1. Cross-checks: are the background effects carried by the same mechanisms?
 
-Power is non-monotonic: a low-power seed group adopts but no one copies it, a
-high-power group adopts less itself. Two mechanisms could carry this:
-prestige (who gets copied) and the share of water in a shortage (who looks
-successful, and who needs the innovation).
+Finding 7 (neighbours) is the newest and least explained result. Two
+knockouts inside the backgrounds that changed the answer would test whether
+the mechanisms found for the seed group also operate through the neighbours:
 
 ```
-miras commons e1 --rho 0.7 --off power_share
-miras commons e1 --rho 0.7 --off power_prestige
-miras commons analyze commons_output/e1_summary.csv \
-    commons_output/e1-rho0.7-off-power_share_summary.csv \
-    commons_output/e1-rho0.7-off-power_prestige_summary.csv --rho 0.7
+miras commons e1 --rho 0.7 --background power=high --off power_share
+miras commons e1 --rho 0.7 --background tightness=high --off tight_conformity
+miras commons analyze commons_output/e1b-power-high-rho0.7_summary.csv \
+    commons_output/e1b-power-high-rho0.7-off-power_share_summary.csv --rho 0.7
 ```
 
-Expected if the water-share reading is right: without `power_share` the
-low-power seed group's innovation spreads and the effect of power shrinks;
-without `power_prestige` little changes.
+*Expected if the mechanisms carry over:* with equal shares, a seed group
+weaker than its neighbours succeeds again; without conformity, tight
+neighbours stop blocking the practice.
 
-### 2. Explain the tightness effect (finding 3)
+### 2. Replication with another seed
 
-Tight seed groups fail with or without sanctions, so conformity or caution
-(less experimentation) must carry it.
+Every result so far comes from one master seed. Rerunning the severe-stress
+E1 with `--seed 2` (`miras commons e1 --rho 0.7 --seed 2`, about 50 minutes)
+and comparing it with `analyze` checks that the effects are larger than
+Monte Carlo noise. Differences of a few percentage points are expected;
+changes of direction would be a red flag.
 
-```
-miras commons e1 --rho 0.7 --off tight_conformity
-miras commons e1 --rho 0.7 --off tight_caution
-```
+### 3. Real groups (E2)
 
-### 3. Confirm the ownership mechanism (finding 5)
+`miras commons example > groups.json`, then describe the groups of a real
+case: sizes and rough positions on each attribute. For a case such as the
+Lake Urmia basin, these positions should come from people who know the
+communities, or from published survey measures, never from assigning traits
+to ethnic or religious groups from outside. The result is specific to that
+description: which group to seed, in which mode, and when.
 
-```
-miras commons e1 --rho 0.7 --off ownership_bias
-```
-
-Expected: the parochialism effect on introduction disappears.
-
-### 4. One-attribute backgrounds (E1b done properly)
-
-Which findings depend on the population around the seed group?
-
-```
-miras commons e1 --rho 0.7 --background tightness=low
-miras commons e1 --rho 0.7 --background tightness=high
-miras commons e1 --rho 0.7 --background wealth=low
-miras commons e1 --rho 0.7 --background altruism=low
-miras commons e1 --rho 0.7 --background power=high
-```
-
-Together steps 1 to 4 are ten runs of about 50 minutes each on 8 cores, so a
-long day or two nights. Send the summaries (or the `analyze` report) and the
-interpretation goes into a results write-up.
-
-### 5. Real groups (E2)
-
-`miras commons example > groups.json`, edit it to describe the groups of a
-case you have in mind (sizes and rough positions on each attribute), and run
-`miras commons scenario groups.json`. The answer is specific to that case:
-which group to seed, in which mode, and when.
-
-### 6. Calibration sensitivity (amendment A3)
+### 4. Calibration sensitivity (amendment A3), with 0.2.2
 
 The defaults were chosen so a mid-level population sits near its tipping
-point. Rerun the headline comparisons with the payoff-learning slope,
-conformity exponent and scarcity value moved up and down, and report which
-conclusions survive. Needs a small addition: learning parameters settable from
-the command line (for example `--set beta_s=5`), planned for 0.2.2.
+point. Rerun the headline comparisons (tightness, power, ownership,
+neighbours) with the payoff-learning slope, conformity exponent and scarcity
+value moved up and down, and report which conclusions survive. Needs one
+addition, planned for **0.2.2**: model parameters settable from the command
+line, e.g. `--set learning.beta_s=5 --set learning.theta=2`, included in the
+output file names and checkpoint keys.
 
-### 7. Identifiability
+### 5. Identifiability
 
 Which field designs (one survey, repeated surveys, surveys with network
-questions, measures of sanctions) could tell apart the mechanisms steps 1 to 4
-find decisive, using `miras.identify`. This comes last because it depends on
-which mechanisms need separating.
+questions, measures of social disapproval) could tell apart the mechanisms
+the runs found decisive: "conformity holds the practice back" against
+"unequal water shares hold it back", and seed-group effects against
+neighbour effects. Uses `miras.identify` with `miras.commons` as the
+simulator; needs a small adapter from `CommonsModel` to `ModelSimulator`-style
+summaries (adoption per group, share of shortage per group), also planned for
+0.2.2.
 
-### 8. Variants from the specification
+### 6. Variants from the specification
 
 Active rejection of owned traits (D4c, already a switch:
 `ownership_rejection`), targeted first adopters (D3b), and imposition of the

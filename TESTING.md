@@ -115,8 +115,9 @@ Notes for reading the output:
 
 ## End-to-end checks for `miras.commons`
 
-Run on an 8-core Apple Silicon Mac with miras 0.2.0 (September 2026). The
-expected values are what those runs gave; the "sustained" shares are averages
+Run on an 8-core Apple Silicon Mac with miras 0.2.0 (C1 to C5) and 0.2.1
+(C6, C8 to C10), September and October 2026; both versions give identical
+numbers for the same seed. The expected values are what those runs gave; the "sustained" shares are averages
 over 50 runs per cell, so expect differences of a few percentage points on
 another machine or seed, not changes of direction.
 
@@ -129,6 +130,9 @@ another machine or seed, not changes of direction.
 | C5 | `miras commons scenario groups.json` | under a minute | a report ranking seed groups | 0.2.0 failed with a traceback when the file was missing; 0.2.1 prints one line saying how to create it (`miras commons example > groups.json`) |
 | C6 | `miras commons analyze commons_output/e1_summary.csv commons_output/e1b-low_summary.csv commons_output/e1-off-tight_sanctions_summary.csv` | seconds | the tables in `docs/commons-results-0.2.0.md` | new in 0.2.1 |
 | C7 | interrupt any `miras commons e1` with Ctrl-C, then rerun it | | `resuming: k/N runs already done`, identical results | checked in development (`test_v9_resumed_experiment_is_identical`) |
+| C8 | the five severe-stress knockouts (`--rho 0.7 --off ...`), compared with `analyze` | about 50 min each | effect on sustained share (high − low), originate: tightness −0.06 without `tight_conformity`, −0.41 without `tight_caution`; power +0.06 without `power_share`, +0.28 without `power_prestige`; parochialism on introduction −0.04 without `ownership_bias` | as expected (0.2.1; `docs/commons-results-knockouts.md`) |
+| C9 | the one-attribute backgrounds (`--rho 0.7 --background ...`) | about 50 min each | single-seed sustained share: tightness=low 41%, tightness=high 0% (every group seeded also 0%), wealth=low 4%, altruism=low 0%, power=high 15% | as expected (0.2.1; `docs/commons-results-backgrounds.md`) |
+| C10 | `miras commons e1 --background tightness=low` (all conditions) | about 1 h 45 min | under mild stress single seeds sometimes succeed (12 to 17%), unlike the mid background (0%) | as expected (0.2.1) |
 
 Notes for reading the output:
 

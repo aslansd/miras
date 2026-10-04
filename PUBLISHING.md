@@ -107,3 +107,18 @@ page catches up with the next upload.
 If a release is broken, *yank* it from the release's management page on PyPI
 rather than deleting it: pip then skips it unless the exact
 version is requested, and nobody's pinned install breaks.
+
+## Publishing documentation changes for 0.2.1
+
+The README on PyPI is the one inside the uploaded 0.2.1 files. To show the
+updated README (with the results of the full runs) without changing any code,
+upload a post-release:
+
+1. Set the version to `0.2.1.post1` in `pyproject.toml`, `src/miras/__init__.py`
+   and `CITATION.cff`.
+2. Turn the CHANGELOG's "Unreleased" heading into `0.2.1.post1 — <date>`.
+3. Build, check and upload as in sections 1 and 2.
+
+Alternatively, keep the changes unreleased until 0.2.2 (planned: `--set` for
+model parameters and the identifiability adapter); GitHub shows the new
+README as soon as it is pushed.

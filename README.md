@@ -460,7 +460,7 @@ miras commons e1 --background tightness=low    # E1b: one background attribute c
 miras commons e1 --rho 0.7 --off power_share   # E3: a knockout, severe stress only (~50 min)
 miras commons example > groups.json            # a scenario file to edit (0.2.1)
 miras commons scenario groups.json             # E2: your own groups, each seeded in each mode
-miras commons analyze commons_output/e1_summary.csv commons_output/e1-off-power_share_summary.csv
+miras commons analyze commons_output/e1_summary.csv commons_output/e1-rho0.7-off-power_share_summary.csv
 ```
 
 - `--background` takes `low`, `mid` or `high` (all five background attributes)
@@ -490,62 +490,87 @@ Attributes left out take their defaults (size 200, tightness, altruism and
 parochialism 0.5, wealth and power 1, contact 0.1). A mistake in the file is
 reported in one line saying what to change.
 
-### What the first runs show (0.2.0, September 2026)
+### What the runs show (September–October 2026)
 
-From the first full runs on an 8-core Mac: E1 (mid background), E1b with all
-five background attributes low, and E3 with sanctions switched off. The full
-tables are in `docs/commons-results-0.2.0.md`; regenerate them with
-`miras commons analyze`. Numbers are averages over cells of 50-run means and
-are conditional on the calibration (amendment A3); the comparisons are the
-robust part, not the exact percentages.
+Fourteen full runs on an 8-core Mac (miras 0.2.0 and 0.2.1, which give
+identical numbers): the pilot; E1 (all 3,904 cells); six mechanism knockouts
+(sanctions over all conditions; conformity, caution, prestige, water shares
+and ownership under severe stress); six backgrounds (all five attributes low;
+tightness low over all conditions; and, under severe stress, tightness low or
+high, wealth low, altruism low, power high, one attribute at a time); and the
+example scenario. The tables are in `docs/commons-results-0.2.0.md` (E1),
+`docs/commons-results-knockouts.md` and `docs/commons-results-backgrounds.md`,
+and can be regenerated with `miras commons analyze`. Numbers are averages over
+cells of 50-run means and are conditional on the calibration (amendment A3);
+read the comparisons, not the exact percentages. Severe stress means ρ = 0.7,
+mild stress ρ = 0.85; "sustained" means adoption ends above the share the
+commons needs.
 
-1. **Under mild water stress (ρ = 0.85), no single seed group sustains the
-   commons**, in any mode, timing or condition. Only seeding every group does
-   (54 to 72% of runs when seeded at scarcity).
-2. **Under severe stress (ρ = 0.7) the seed group matters.** Averaged over
-   profiles a single seed sustains the commons in about 25% of runs; the best
-   profiles in about 95%.
-3. **Tight groups are poor places to start.** Sustained share by seed
-   tightness, low / mid / high: 45% / 30% / 1%. The effect survives with
-   sanctions switched off (−0.40 instead of −0.44), so it comes from
-   conformity and caution rather than punishment; it keeps its direction with a
-   low background (−0.24 on mean adoption).
-4. **Sanctions protect what is already widespread.** Without them, seeding
-   every group under severe stress sustains the commons in 9% of runs instead
-   of 96%, while single seeds do slightly better and, under mild stress,
-   sometimes succeed. Sanctions hinder the start and hold the finish.
-5. **Parochialism matters only when the innovation comes from outside**
-   (−0.14 on the sustained share when introduced, 0.00 when originating): the
-   ownership mechanism.
-6. **Power is non-monotonic** (0% / 46% / 29% for low / mid / high). A
-   low-power group adopts (40%) but no other group copies it; a high-power group
-   adopts less itself. The likely reason is who gets the water in a shortage:
-   learners compare utilities, and a low-power group's members look worse off.
-   This reading is a hypothesis until the `power_share` knockout is run.
-7. **Best origin under severe stress:** a loose, altruistic, mid-power group
+1. **Under mild stress, no single seed group sustains the commons**, in any
+   mode, timing or condition (0%). Only seeding every group does, and only if it
+   happens as shortages begin (63%) rather than during plenty (4%). The one
+   exception: with loose neighbours, single seeds sometimes succeed (12 to 17%
+   on average, the best profiles always).
+2. **Timing.** Seeding during plenty is the most reliable way to fail under
+   mild stress (finding 1). Under severe stress it matters less: 93% vs 100%
+   when every group is seeded, 21–23% vs 27–30% for single seeds.
+3. **Tight groups are poor starting points, because of conformity.**
+   Sustained share by the seed group's tightness, low / mid / high: 45% / 30%
+   / 1%. Switching conformity off levels it (38% / 42% / 32%); switching off
+   caution (less experimentation) or sanctions barely changes it (effect −0.41
+   and −0.40 instead of −0.44). A rare new practice in a conformist group is
+   pulled back to the majority before it can prove itself.
+4. **Sanctions hold the finish.** With every group seeded under severe
+   stress, the commons is sustained in 96% of runs; without sanctions, in 9%.
+   The norm-enforcement that hinders a start protects a practice once it is
+   the majority.
+5. **Power works through the water, not prestige.** Sustained share by the
+   seed group's power, low / mid / high: 0% / 46% / 29%. Switching prestige off
+   changes nothing (0% / 46% / 29%); sharing shortages equally removes the
+   effect (41% / 46% / 47%). When powerful groups get more water, a weak group's
+   members look worse off and nobody copies them, while a powerful group is
+   shielded from the shortage that would make the practice pay. Equal shares
+   also raise single-seed success overall, from 25% to 45%.
+6. **Parochialism matters only for outsiders' practices, through ownership.**
+   It lowers the sustained share when the practice is introduced from outside
+   (−0.14 from low to high parochialism) but not when it originates in the
+   group (0.00). Without the ownership mechanism the effect nearly vanishes
+   (−0.04) and introduction succeeds about twice as often (49% vs 25%).
+7. **The neighbours matter more than the pioneer.** Single-seed success by
+   the other groups' character: loose 41% (36% originating, 47% introduced),
+   middling 25%, more powerful 15%, poorer 4%, less altruistic 0%, tight 0%.
+   With tight neighbours even seeding every group fails (0%); with poorer or
+   less altruistic neighbours it succeeds about half the time (56%, 52%).
+   **Power is relative**: with more powerful neighbours only an equally
+   powerful seed group ever succeeds (0% / 0% / 46%).
+8. **Best origin under severe stress:** a loose, altruistic, mid-power group
    (sustained in about 95% of runs, originating or introduced).
-8. **The low background (E1b) sustains nothing, but not because nothing
-   spreads**: adoption outside the seed group is higher than with a mid
-   background (61% vs 43% under severe stress, seeded at scarcity, high contact) and stalls short of the threshold the commons needs
-   (adoption gap −0.27 vs −0.43). That background changed all five attributes
-   at once (poorer, less altruistic, less powerful and looser), so it cannot say
-   which one matters; 0.2.1 adds one-attribute backgrounds for that.
+9. **With all five background attributes low, nothing is sustained, but not
+   because nothing spreads**: adoption stalls just short of the threshold
+   (adoption gap −0.27 vs −0.43 for the mid background). The one-attribute
+   runs above show which ingredients do the damage: poverty and low altruism
+   block, looseness helps.
+
+The scenario run used the example file (`miras commons example`), whose
+groups are invented; it is not a model of any real place.
 
 ### What comes next
 
-The plan, in order (details in `ROADMAP.md`):
+Details and commands in `ROADMAP.md`.
 
-1. **Knockouts to explain findings 3 and 6**: `power_share`,
-   `power_prestige`, `tight_conformity`, `tight_caution`, and
-   `ownership_bias` to confirm finding 5. Each under severe stress only
-   (`--rho 0.7`, about 50 minutes), then compared with `analyze`.
-2. **One-attribute backgrounds (E1b)**: `--background tightness=low`,
-   `tightness=high`, `wealth=low`, `altruism=low` and `power=high`, to see which
-   findings depend on the population the seed group sits in.
-3. **Real groups (E2)** for a case you have in mind.
-4. **Calibration sensitivity (amendment A3)**, then the **identifiability
-   study**: which field designs could tell apart the mechanisms these runs
-   find decisive.
+1. **Cross-checks with the existing tools**: knockouts inside the
+   backgrounds that changed the answer, e.g. equal water shares with more
+   powerful neighbours, and no conformity with tight neighbours, to confirm the
+   mechanisms behind finding 7.
+2. **A replication** of the severe-stress E1 with another seed, to confirm
+   the findings are not Monte Carlo noise.
+3. **Real groups (E2)**: a scenario file describing a real case, built with
+   people who know it, never by assigning traits to communities from outside.
+4. **Calibration sensitivity (amendment A3)**: needs learning parameters
+   settable from the command line, planned for 0.2.2.
+5. **Identifiability**: which field data (surveys, repeated surveys, network
+   questions, measures of disapproval) could tell "conformity holds the
+   practice back" from "unequal water shares hold it back".
 
 **Checked before use.** Nine verification checks with known answers pass (`tests/test_commons.py`):
 the stock drains and the first shortage arrives at the exact predicted step;
