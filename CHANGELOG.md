@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+Documentation only (no code changes), from the full set of 0.2.1 runs.
+
+- README, "What the runs show": nine findings from fourteen full runs,
+  each mechanism now confirmed by its knockout (power acts through water
+  shares, not prestige; tightness through conformity; parochialism through
+  ownership) and the new background results (the neighbours matter more than
+  the seed group; power is relative).
+- `docs/commons-results-knockouts.md` and `docs/commons-results-backgrounds.md`:
+  the `analyze` reports behind them.
+- ROADMAP: what each planned step found against what was expected, and the
+  next steps (cross-checks, replication, real groups, calibration sensitivity
+  and identifiability, with 0.2.2 adding `--set` and an identifiability adapter).
+- TESTING: reference values for the knockout and background runs (C8 to C10).
+- README: the `analyze` example names the right file
+  (`e1-rho0.7-off-power_share_summary.csv`).
+
+
 ## 0.2.1 — 2026-09-28
 
 From the first full runs of `miras.commons` on a user's machine (pilot, E1,
