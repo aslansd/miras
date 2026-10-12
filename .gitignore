@@ -1,10 +1,7 @@
+.venv/
+venv/
 __pycache__/
-*.egg-info/
-dist/
-build/
-.daftar/
-*_output/
-output/
-src/miras/stan/*.hpp
-src/miras/stan/Longitudinal_Conf
-src/miras/stan/dags_to_data
+*.py[cod]
+.DS_Store
+.env
+.ipynb_checkpoints/

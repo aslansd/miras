@@ -1,0 +1,2 @@
+[console_scripts]
+miras = miras.cli:main
