@@ -58,9 +58,20 @@ outcome is recorded against what was expected.
 Not yet done from the earlier plan: E2 with real groups (only the example
 scenario was run), calibration sensitivity, identifiability.
 
+**The example scenario** (`miras commons example`: Highland, Valley,
+Riverside, at ρ = 0.7) sustained the commons in 0% of runs for every seeding,
+including seeding every group; mean adoption stayed near 0.33 against the
+0.75 needed. Adoption per group shows why: only Valley keeps the practice
+(about 0.99). Highland, large, tight and powerful, barely feels the shortage
+under rationing and drops the practice even when seeded (about 0.03).
+Riverside, poor and less altruistic, drops it too (about 0.05) and cannot pass
+it on when seeded. As in the one-attribute backgrounds, the groups that refuse
+decide the outcome more than the group where the practice starts.
+
 ## Next for miras.commons
 
-All of steps 1 to 3 need no new code.
+All of steps 1 to 3 need no new code (step 3 adds two example files,
+`examples/extremes.json` and `examples/per_group.py`).
 
 ### 1. Cross-checks: are the background effects carried by the same mechanisms?
 
@@ -81,20 +92,100 @@ neighbours stop blocking the practice.
 
 ### 2. Replication with another seed
 
-Every result so far comes from one master seed. Rerunning the severe-stress
-E1 with `--seed 2` (`miras commons e1 --rho 0.7 --seed 2`, about 50 minutes)
-and comparing it with `analyze` checks that the effects are larger than
-Monte Carlo noise. Differences of a few percentage points are expected;
-changes of direction would be a red flag.
+Every result so far comes from one master seed. Rerun the severe-stress E1
+with a second seed, into its own folder (the seed is part of the checkpoint
+key but not of the output file names, so a separate folder keeps the two runs
+apart). About 50 minutes on 8 cores:
 
-### 3. Real groups (E2)
+```
+miras commons e1 --rho 0.7 --seed 2 --cores 8 --outdir commons_output_seed2
+miras commons analyze commons_output/e1_summary.csv \
+    commons_output_seed2/e1-rho0.7_summary.csv --rho 0.7 --out replication.md
+```
 
-`miras commons example > groups.json`, then describe the groups of a real
-case: sizes and rough positions on each attribute. For a case such as the
-Lake Urmia basin, these positions should come from people who know the
-communities, or from published survey measures, never from assigning traits
-to ethnic or religious groups from outside. The result is specific to that
-description: which group to seed, in which mode, and when.
+The first file (seed 1, all conditions) is filtered to ρ = 0.7 by `--rho`, so
+the two columns of the report compare like with like. Check that each seed-1
+result comes back in the same direction:
+
+| result (ρ = 0.7, seed 1) | value |
+|---|---|
+| references: one seed group / every group seeded | 21–30% / 93–100% sustained |
+| tightness of the seed group, low / mid / high | 45 / 30 / 1% |
+| power of the seed group, low / mid / high | 0 / 46 / 29% |
+| parochialism, effect on introduction / origination | −0.14 / about 0 |
+| neighbours (from E1b), loose / tight | 41% / 0% |
+
+Differences of 3 to 5 percentage points are Monte Carlo noise. A change of
+direction (for example high tightness doing better than low) would be a red
+flag. For more confidence, add `--seed 3` into a third folder (another 50
+minutes).
+
+### 3. Scenarios (E2): an extreme-case stress test first, then real groups
+
+**3a. Extreme groups.** Before describing real groups, run a scenario whose
+groups sit at the extremes of the attributes. This is a test of the model, not
+a picture of any real basin: with each mechanism made large, the result should
+be explainable from what E1 found, and a result that cannot be explained is a
+finding too. Give such groups abstract names and never read them as real
+communities.
+
+`examples/extremes.json` has four groups of equal size (200 each, so size does
+not blur the comparison), all with contact 0.1, at ρ = 0.7 and both timings:
+
+| group | tightness | altruism | parochialism | wealth | power |
+|---|---|---|---|---|---|
+| Dominant | 0.9 | 0.5 | 0.9 | 2.0 | 3.0 |
+| Marginal | 0.1 | 0.5 | 0.1 | 0.5 | 0.3 |
+| Open | 0.1 | 0.9 | 0.1 | 1.0 | 1.0 |
+| Closed | 0.9 | 0.9 | 0.9 | 1.0 | 1.0 |
+
+Run it as it is and with the two mechanisms E1 found decisive switched off
+(each run takes a couple of minutes: 20 cells × 50 runs):
+
+```
+miras commons scenario examples/extremes.json --cores 8
+miras commons scenario examples/extremes.json --cores 8 --off power_share
+miras commons scenario examples/extremes.json --cores 8 --off tight_conformity
+```
+
+The scenario report gives only the seed group and "everyone else". The
+explanation is in which groups hold out, so also run the helper
+`examples/per_group.py`, which prints adoption in each group, the shortage
+and the number of sustained runs for every seeding:
+
+```
+python examples/per_group.py examples/extremes.json
+python examples/per_group.py examples/extremes.json --off power_share
+python examples/per_group.py examples/extremes.json --off tight_conformity
+python examples/per_group.py examples/extremes.json --timing plenty
+```
+
+*Expected, from a small test run (10 runs per cell, to be confirmed at 50):*
+
+- **As it is:** 0% sustained for every seeding, including every group seeded.
+  The two loose groups (Marginal, Open) adopt and the two tight groups
+  (Dominant, Closed) stay at 0. Half the population adopting cannot reach the
+  0.75 the water balance needs at ρ = 0.7, so this is arithmetic as much as
+  seeding: the tight groups have to be won over.
+- **Without conformity:** both tight groups adopt and the commons is
+  sustained when every group is seeded or when the practice is introduced
+  into Closed (6 of 6 runs each). Seeded in Dominant or Open, the practice reaches every group except
+  Closed and falls just short. Marginal, the poorest group, largely stops
+  paying once the shortage is gone.
+- **With equal water shares:** a seed in Marginal now spreads to Open, which
+  it cannot do with power-weighted shares, as in E1 (a weak seed group is not
+  copied while shares are unequal).
+
+Useful follow-ups on the same file: `"resource": {"rho": 0.85}` (mild
+stress), unequal sizes, and higher contact for the tight groups.
+
+**3b. Real groups.** `miras commons example > groups.json`, then describe the
+groups of a real case: sizes and rough positions on each attribute. For a case
+such as the Lake Urmia basin, these positions should come from people who know
+the communities, or from published survey measures, never from assigning
+traits to ethnic or religious groups from outside. The result is specific to
+that description: which group to seed, in which mode, and when. Run
+`per_group.py` on it as well, and compare the pattern with the extreme case.
 
 ### 4. Calibration sensitivity (amendment A3), with 0.2.2
 

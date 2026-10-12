@@ -1,0 +1,15 @@
+{
+  "groups": [
+    {"name": "Dominant", "size": 200, "tightness": 0.9, "altruism": 0.5, "parochialism": 0.9,
+     "wealth": 2.0, "power": 3.0, "contact": 0.1},
+    {"name": "Marginal", "size": 200, "tightness": 0.1, "altruism": 0.5, "parochialism": 0.1,
+     "wealth": 0.5, "power": 0.3, "contact": 0.1},
+    {"name": "Open", "size": 200, "tightness": 0.1, "altruism": 0.9, "parochialism": 0.1,
+     "wealth": 1.0, "power": 1.0, "contact": 0.1},
+    {"name": "Closed", "size": 200, "tightness": 0.9, "altruism": 0.9, "parochialism": 0.9,
+     "wealth": 1.0, "power": 1.0, "contact": 0.1}
+  ],
+  "resource": {"rho": 0.7},
+  "innovation": {"saving": 0.4, "cost": 0.1},
+  "timings": ["plenty", "scarcity"]
+}
