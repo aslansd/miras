@@ -1,0 +1,8 @@
+#!/bin/sh
+'''exec' "/Users/asataryd/Documents/ENI-Projects/Aslan/B2B Scientific Startups/Summary Feasibility Plans/miras/.venv/bin/python3.11" "$0" "$@"
+' '''
+import sys
+from cmdstanpy.install_cxx_toolchain import __main__
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(__main__())

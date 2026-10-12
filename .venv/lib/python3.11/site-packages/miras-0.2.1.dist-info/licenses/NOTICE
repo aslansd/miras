@@ -1,0 +1,33 @@
+miras
+Copyright 2026 Aslan Satary Dizaji
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+-------------------------------------------------------------------------------
+Built on the Cultural Evolution Workflow
+-------------------------------------------------------------------------------
+
+The agent-based model, the three worked examples in miras.paper, the
+longitudinal Stan model (src/miras/stan/Longitudinal_Conf.stan) and the
+age-specific migration data (src/miras/data/beta_df.csv) are derived from:
+
+  Deffner, D., Fedorova, N., Andrews, J. & McElreath, R. (2024).
+  Bridging theory and data: A computational workflow for cultural evolution.
+  Proceedings of the National Academy of Sciences, 121(48), e2322887121.
+  https://doi.org/10.1073/pnas.2322887121
+
+  Code: https://github.com/DominikDeffner/CulturalEvolutionWorkflow
+  Authors of the original scripts: Dominik Deffner (ABM, longitudinal
+  analysis), Natalia Fedorova (ABC analysis), Jeffrey Andrews and Dominik
+  Deffner (DAGs and power analysis).
+
+The original repository is dedicated to the public domain under CC0 1.0
+Universal (see LICENSE-ORIGINAL-CC0). No permission was required to build on
+it; this notice exists because credit is owed regardless. If you use miras,
+please cite the paper above.
+
+The migration rates in beta_df.csv are the Dutch age-specific migration
+estimates of Fedorova et al. (2022), as used and cited in Deffner et al. (2024).
+
+Changes relative to the original R code (bug fixes and generalisations) are
+listed in README.md and in NOTE comments in the source.
