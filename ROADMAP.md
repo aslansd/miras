@@ -21,10 +21,11 @@ worker; ABC contrasts centred on the posterior. Details in `CHANGELOG.md`.
   `--set section.field=value`; `--seed k` in output names; `--no-support`;
   `analyze` keeps same-named files apart and compares runs cell by cell. Same
   numbers as 0.2.1 for the same seed (checked on all four scenario runs).
-- **Twenty-three full runs (September–October 2026, 8-core Mac)**: pilot; E1;
+- **Thirty-four full runs (September–October 2026, 8-core Mac)**: pilot; E1;
   six knockouts; seven backgrounds; two knockouts inside backgrounds; two
-  replications; four scenarios. Findings: `docs/commons-findings.md`; tables:
-  `docs/commons-results-*.md`.
+  replications; four scenarios; six calibration-sensitivity runs; five runs
+  on open questions. Findings: `docs/commons-findings.md` (22 findings);
+  tables: `docs/commons-results-*.md`.
 
 ### What the planned steps found
 
@@ -80,102 +81,100 @@ recorded against what was expected.
    only Valley adopts, Highland (tight, powerful) and Riverside (poor, less
    altruistic) do not.
 
-Not yet done: calibration sensitivity, real groups, identifiability.
+**October 2026, second round** (steps 1 and 2 of the previous roadmap)
+
+9. **Calibration sensitivity** (`--rho 0.7 --reps 25 --set ...`: β_s 5 and 20,
+   θ 1.2 and 2, λ₀ 2 and 8). *Expected:* success rates move; the question was
+   whether the signs and order of the effects survive. *Found:* they do in
+   all six. Single-seed success ranges from 8% (θ = 2, λ₀ = 2) to 40%
+   (θ = 1.2, λ₀ = 8); β_s matters little (19 to 27%). Tightness always hurts,
+   a weak pioneer almost never succeeds (12 to 15% only at λ₀ = 8),
+   mid-power always beats high power, parochialism matters only on
+   introduction, scarcity always beats plenty, and the best starting groups
+   are always loose and not weak. **Confirmed: the conclusions do not depend
+   on the calibration; the success rates do.** (`docs/commons-results-sensitivity.md`)
+10. **(2a) Support** (`--background tightness=high --off tight_conformity
+    --no-support`). *Expected if support is the reason:* introduction falls to
+    the level of origination (44%). *Found:* exactly 44%, and the two modes
+    become indistinguishable cell by cell. **Confirmed.**
+11. **(2b) The parochial filter** (`--off tight_conformity,outgroup_filter` on
+    the extreme scenario). *Expected:* Closed adopts whatever group the
+    practice starts in. *Found:* yes; at scarcity every seeding except
+    Marginal's sustains the commons (100%). **Confirmed.**
+12. **(2c) The threshold** (`--set resource.rho=0.65`, `0.75`, `--steps 1500`).
+    *Expected:* at ρ = 0.75 (A* = 0.625) three adopting groups clear the
+    threshold with room to spare. *Found:* **not as expected.** With less
+    stress there is less to gain, so adoption stops lower (0.56 to 0.58),
+    again just under the threshold with a small shortage left; nothing is
+    sustained except with Closed seeded (14%, or 70% introduced during
+    plenty). At ρ = 0.65 adoption reaches 0.82 against 0.875. At 1,500 steps
+    the outcomes hardly change. Payoff learning alone settles just below the
+    threshold at every stress level tried (finding 22).
+    (`docs/commons-results-open-questions.md`)
+
+Not yet done: real groups, identifiability.
 
 ## Next for miras.commons
 
-Steps 1 and 2 use only what 0.2.2 provides. Run them from the project folder;
-every output goes to `commons_output/` with a name that says what was run.
+Steps 1 and 2 need only what 0.2.2 provides.
 
-### 1. Calibration sensitivity (amendment A3)
+### 1. Real groups (E2)
 
-The defaults were chosen so that a mid-level population sits near its
-tipping point (A3: payoff-learning slope β_s = 10, conformity exponent
-θ = 1.5, value of saved water at an empty store λ₀ = 4). Move each one down
-and up, one at a time, under severe stress. The replication showed that the
-averages `analyze` reports are precise with far fewer runs than 50 per cell,
-so 25 runs per cell halve the time (about 35 minutes each on 8 cores, about
-3.5 hours for all six):
+The main remaining step. `miras commons example > groups.json`, then describe
+the groups of a real case: sizes and rough positions on each attribute. For a
+case such as the Lake Urmia basin, these positions should come from people
+who know the communities, or from published survey measures, never from
+assigning traits to ethnic or religious groups from outside. The result is
+specific to that description: which group to seed, in which mode, and when.
+
+Since the calibration changes success rates (finding 19), run the scenario at
+the default and at the two settings that moved them most, and trust only
+what the three agree on (each under a minute):
 
 ```
-miras commons e1 --rho 0.7 --reps 25 --set learning.beta_s=5
-miras commons e1 --rho 0.7 --reps 25 --set learning.beta_s=20
-miras commons e1 --rho 0.7 --reps 25 --set learning.theta=1.2
-miras commons e1 --rho 0.7 --reps 25 --set learning.theta=2
-miras commons e1 --rho 0.7 --reps 25 --set learning.lambda0=2
-miras commons e1 --rho 0.7 --reps 25 --set learning.lambda0=8
-miras commons analyze commons_output/e1_summary.csv \
-    commons_output/e1-rho0.7-set-beta_s5_summary.csv \
-    commons_output/e1-rho0.7-set-beta_s20_summary.csv \
-    commons_output/e1-rho0.7-set-theta1.2_summary.csv \
-    commons_output/e1-rho0.7-set-theta2_summary.csv \
-    commons_output/e1-rho0.7-set-lambda02_summary.csv \
-    commons_output/e1-rho0.7-set-lambda08_summary.csv --rho 0.7 --out sensitivity.md
+miras commons scenario groups.json
+miras commons scenario groups.json --set learning.theta=2
+miras commons scenario groups.json --set learning.lambda0=8
 ```
 
-*What to look for:* the overall success rates will move (that is what a
-calibration does); the question is whether the **signs and order** of the
-effects survive: tightness negative, power acting through water (0% for a
-weak seed), parochialism mattering only on introduction, and the best class
-of seed group (loose, mid-power). A conclusion that flips under a plausible
-change should be reported as conditional on the calibration. If the
-directions hold, repeat the two most important knockouts (`--off
-power_share`, `--off tight_conformity`) at the setting that changed the
-results most.
+Read the adoption in each group and the shortage, not only the sustained
+share (finding 22), and compare the pattern with the extreme case.
 
-### 2. Open questions from the October runs
+### 2. Short follow-ups (optional)
 
-Each is one short run.
-
-a. **Why does introduction beat origination with tight neighbours?** The
-   likely reason is the support that comes with introduction (a subsidy and
-   outside demonstrators). `--no-support` removes it (about 70 minutes):
+a. **Calibration under mild stress.** The sensitivity runs used ρ = 0.7. The
+   two settings that raised success might make mild stress winnable for a
+   single seed (0% at the default); about 35 minutes each:
 
    ```
-   miras commons e1 --rho 0.7 --background tightness=high --off tight_conformity --no-support
-   miras commons analyze commons_output/e1b-tightness-high-rho0.7-off-tight_conformity_summary.csv \
-       commons_output/e1b-tightness-high-rho0.7-off-tight_conformity-nosupport_summary.csv --rho 0.7
+   miras commons e1 --rho 0.85 --reps 25 --set learning.theta=1.2
+   miras commons e1 --rho 0.85 --reps 25 --set learning.lambda0=8
+   miras commons analyze commons_output/e1_summary.csv \
+       commons_output/e1-rho0.85-set-theta1.2_summary.csv \
+       commons_output/e1-rho0.85-set-lambda08_summary.csv --rho 0.85
    ```
 
-   *Expected if support is the reason:* "introduce" falls to about the level
-   of "originate" (44%).
-
-b. **The parochial filter in the extreme scenario** (under a minute):
+b. **The mechanisms at another calibration.** Repeat the two decisive
+   knockouts at θ = 2, where success was rarest:
 
    ```
-   miras commons scenario examples/extremes.json --off tight_conformity,outgroup_filter
+   miras commons e1 --rho 0.7 --reps 25 --set learning.theta=2 --off power_share
+   miras commons e1 --rho 0.7 --reps 25 --set learning.theta=2 --off tight_conformity
    ```
 
-   *Expected:* Closed adopts whatever group the practice starts in.
+   *Expected:* the power effect shrinks with equal shares and the tightness
+   effect without conformity, as at the default.
 
-c. **The threshold in the extreme scenario.** Move the water stress either
-   side of the knife edge, and run longer to see slow drains:
+c. **A longer horizon near the threshold.** Some runs at ρ = 0.75 end just
+   under A* with no shortage yet (Closed seeded at scarcity: adoption 0.58,
+   shortage 0.00), where the store can only drain very slowly. Whether a
+   shortage then appears and adoption recovers needs a much longer run:
 
    ```
-   miras commons scenario examples/extremes.json --off tight_conformity --set resource.rho=0.65
-   miras commons scenario examples/extremes.json --off tight_conformity --set resource.rho=0.75
-   miras commons scenario examples/extremes.json --off tight_conformity --steps 1500
+   miras commons scenario examples/extremes.json --off tight_conformity --set resource.rho=0.75 --steps 3000
    ```
 
-   The outputs are named `...-set-rho0.65`, `...-set-rho0.75` and
-   `...-steps1500`. *Expected:* at ρ = 0.75 the commons needs only 0.625, so
-   three adopting groups clear it with room to spare; at ρ = 0.65 it needs
-   0.875, so Marginal must stay in too, which finding 18 suggests it will
-   not. If adoption again settles just at the threshold, that is the
-   payoff-only equilibrium of finding 18; read the adoption gap and the
-   adoption in each group, not only the sustained share.
-
-### 3. Real groups (E2)
-
-`miras commons example > groups.json`, then describe the groups of a real
-case: sizes and rough positions on each attribute. For a case such as the
-Lake Urmia basin, these positions should come from people who know the
-communities, or from published survey measures, never from assigning traits
-to ethnic or religious groups from outside. The result is specific to that
-description: which group to seed, in which mode, and when. Read the adoption
-in each group in the report, and compare the pattern with the extreme case.
-
-### 4. Identifiability (0.2.3)
+### 3. Identifiability (0.2.3)
 
 Which field designs (one survey, repeated surveys, surveys with network
 questions, measures of social disapproval) could tell apart the mechanisms
@@ -184,9 +183,11 @@ the runs found decisive: "conformity holds the practice back" against
 neighbour effects. Uses `miras.identify` with `miras.commons` as the
 simulator; needs a small adapter from `CommonsModel` to `ModelSimulator`-style
 summaries (adoption per group, share of shortage per group), planned for
-**0.2.3**.
+**0.2.3**. Also for 0.2.3: an outcome for the small persistent shortage of
+finding 22 (e.g. the share of runs whose shortage ends below 2%), since
+"sustained" alone counts those runs as failures.
 
-### 5. Variants from the specification
+### 4. Variants from the specification
 
 Active rejection of owned traits (D4c, already a switch:
 `ownership_rejection`), targeted first adopters (D3b), and imposition of the

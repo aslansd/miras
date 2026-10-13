@@ -508,11 +508,12 @@ stress test with four groups at the extremes of the attributes.
 
 ### What the runs show (September–October 2026)
 
-Twenty-three full runs on an 8-core Mac (miras 0.2.0 and 0.2.1, which give
-identical numbers for the same seed, as does 0.2.2): E1, six mechanism
+Thirty-four full runs on an 8-core Mac (miras 0.2.0, 0.2.1 and 0.2.2, which
+give identical numbers for the same seed and settings): E1, six mechanism
 knockouts, seven backgrounds, two knockouts inside backgrounds, two
-replications with other seeds, and four scenarios. The full list of eighteen
-findings, with the numbers, is in **`docs/commons-findings.md`**; the tables
+replications with other seeds, four scenarios, six calibration-sensitivity
+runs and five runs on open questions. The full list of twenty-two findings,
+with the numbers, is in **`docs/commons-findings.md`**; the tables
 behind them are in `docs/commons-results-*.md` and can be regenerated with
 `miras commons analyze`. Numbers are conditional on the calibration
 (amendment A3): read the comparisons, not the exact percentages. Severe stress
@@ -560,6 +561,23 @@ share the commons needs.
     a few hundredths of the threshold. The sustained share alone can mislead
     there; the adoption in each group and the adoption gap do not.
 
+11. **The conclusions survive the calibration; the success rates do not.**
+    Moving the conformity exponent, the value of saved water and the
+    payoff-learning slope down and up changes single-seed success from 8% to
+    40%, but in all six runs tightness hurts, weak pioneers (almost) never
+    succeed, parochialism matters only for an introduced practice, seeding at
+    scarcity beats plenty, and the best starting groups are loose and not
+    weak.
+12. **Outside support explains why introduction can beat origination.**
+    With tight neighbours, introduction's 13-point advantage disappears
+    without the subsidy and demonstrators (`--no-support`), and the two modes
+    become indistinguishable.
+13. **Left to what pays privately, adoption stops just below the threshold.**
+    Without conformity in the extreme scenario, adoption settles just under
+    the share the commons needs at every level of stress tried, leaving a
+    small shortage (up to about 5%); with less stress it stops lower.
+    Holding a practice above the threshold takes sanctions.
+
 Best origin under severe stress: a loose, mid-power group (sustained in about
 95% of runs, originating or introduced); about ten such profiles are equally
 good, and their order changes between seeds. The scenario groups are invented;
@@ -569,17 +587,15 @@ they are not a model of any real place.
 
 Details and commands in `ROADMAP.md`.
 
-1. **Calibration sensitivity (amendment A3)**, now possible with `--set`:
-   rerun the headline comparisons with the payoff-learning slope, the
-   conformity exponent and the value of scarce water moved up and down.
-2. **Open questions from the October runs**: why introduction beats
-   origination with tight neighbours, and a proper test of the parochial filter
-   and of the threshold effect in the extreme scenario.
-3. **Real groups (E2)**: a scenario file describing a real case, built with
-   people who know it, never by assigning traits to communities from outside.
-4. **Identifiability**: which field data (surveys, repeated surveys, network
-   questions, measures of disapproval) could tell "conformity holds the
-   practice back" from "unequal water shares hold it back".
+1. **Real groups (E2)**: a scenario file describing a real case, built with
+   people who know it, never by assigning traits to communities from outside,
+   and checked at two calibrations with `--set`.
+2. **Short follow-ups**: calibration sensitivity under mild stress, the
+   knockouts at the calibration that changed results most, and a longer
+   horizon for runs that end just under the threshold.
+3. **Identifiability** (0.2.3): which field data (surveys, repeated surveys,
+   network questions, measures of disapproval) could tell "conformity holds
+   the practice back" from "unequal water shares hold it back".
 
 **Checked before use.** Nine verification checks with known answers pass (`tests/test_commons.py`):
 the stock drains and the first shortage arrives at the exact predicted step;

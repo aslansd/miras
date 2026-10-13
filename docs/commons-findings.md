@@ -1,8 +1,8 @@
 # miras.commons: what the runs show
 
 This is the curated summary of every `miras.commons` run so far (September and
-October 2026; 23 full runs on an 8-core Mac with miras 0.2.0 and 0.2.1, which
-give identical numbers for the same seed). The tables behind each statement
+October 2026; 34 full runs on an 8-core Mac with miras 0.2.0, 0.2.1 and
+0.2.2, which give identical numbers for the same seed and settings). The tables behind each statement
 are in the `commons-results-*.md` files next to this one, and every one of
 them can be regenerated from `commons_output/` with `miras commons analyze`.
 
@@ -27,9 +27,12 @@ any real place or community.
 | cross-checks | 2 | do the background effects run through the same mechanisms? | `commons-results-crosschecks.md` |
 | replication | 2 | are the effects larger than Monte Carlo noise? | `commons-results-replication.md` |
 | scenarios (E2) | 4 | invented groups, and four extreme groups with two knockouts | `commons-results-scenarios.md` |
+| calibration sensitivity | 6 | do the conclusions survive other values of β_s, θ and λ₀? | `commons-results-sensitivity.md` |
+| open questions | 5 | introduction support; the parochial filter; the threshold | `commons-results-open-questions.md` |
 
 The severe-stress runs (1,952 cells × 50 runs) took 63 to 79 minutes each on
-8 cores; a scenario takes under a minute.
+8 cores, about half that with 25 runs per cell (the sensitivity runs); a
+scenario takes under a minute.
 
 ## Findings
 
@@ -103,11 +106,10 @@ The severe-stress runs (1,952 cells × 50 runs) took 63 to 79 minutes each on
     Single seeds then do a little better than in the middling background
     without conformity (37%, 49%), though seeding every group does worse
     (88% against 97%). The mechanism behind finding 8's worst case is the one
-    behind finding 4. Two things are new in this background and not yet
-    explained: introducing the practice beats originating it by 12 to 14
-    points at every level of parochialism (the outside subsidy and
-    demonstrators are the likely reason; a knockout of that support would
-    test it), and seeding at scarcity matters much more than elsewhere
+    behind finding 4. Two things are new in this background: introducing the
+    practice beats originating it by 12 to 14 points at every level of
+    parochialism (explained by the support that comes with introduction,
+    finding 20), and seeding at scarcity matters much more than elsewhere
     (+0.23 with every group seeded, +0.25 for origination).
 
 ### New in October 2026: replication
@@ -152,21 +154,91 @@ The severe-stress runs (1,952 cells × 50 runs) took 63 to 79 minutes each on
     (0 to 8%). During plenty only Closed works at all (introduced 86%,
     originating 22%; every group seeded 4%).
     Closed adopts a practice that starts with it, and the others copy it, but
-    its parochial filter keeps it from copying anyone else: with the filter
-    also switched off, Closed adopts from any starting point (a 6-run check).
+    its parochial filter keeps it from copying anyone else (confirmed by
+    finding 21).
 18. **Where nothing holds a majority in place, adoption falls back to where
     saving stops paying.** In finding 17 adoption ends at 0.74 to 0.77
     against an A* of 0.75: once enough groups save water the shortage
     disappears, saving stops paying, and the group with the least to gain and
     the least norm pressure (Marginal: loose and poor) drops it. Whether the
     commons counts as "sustained" then depends on a few hundredths of
-    adoption, and a run with almost no shortage can still be unsustainable,
-    slowly emptying the store (Dominant introduced during plenty: shortage
-    0.01, sustained 2%). E1 shows the same force at full scale: with every
+    adoption; the store drains, if at all, very slowly (finding 22). E1 shows the
+    same force at full scale: with every
     group seeded, mean adoption ends at 0.92 with sanctions, still 0.96
     without conformity, but 0.52 without sanctions (finding 5). Read scenario
     outcomes with the adoption in each group and the adoption gap, not only
     the sustained share.
+
+### New in October 2026, second round: calibration
+
+19. **The conclusions survive the calibration; the success rates do not.**
+    Moving each calibrated learning parameter of amendment A3 down and up
+    (25 runs per cell, severe stress) changes how often a single seed
+    succeeds, from 8% to 40%: the conformity exponent θ (1.2: 37 to 40%;
+    2: 8 to 9%) and the value of saved water λ₀ (2: 8%; 8: 37 to 38%) matter
+    most, the payoff-learning slope β_s little (5: 19%; 20: 27%; default
+    25%). Every qualitative result holds in all six:
+    - tightness hurts (sustained share by tightness always falls from low to
+      high; effect −0.16 to −0.69), and the best starting groups are always
+      loose and never weak;
+    - a weak seed group almost never succeeds (0 to 2%), with one exception:
+      when saved water is valued highly (λ₀ = 8) it succeeds 12 to 15% of
+      the time; a mid-power group always does better than a powerful one;
+    - parochialism matters only for an introduced practice (−0.04 to −0.20,
+      against −0.01 to +0.02 for origination);
+    - seeding at scarcity always beats seeding during plenty (+0.03 to
+      +0.12 for single seeds);
+    - seeding every group always does far better than any single seed (77 to
+      100%).
+    Where success is rare (θ = 2, λ₀ = 2) the effects are smaller in
+    percentage points, but their signs and order are the same. Individual
+    cells change much more than sampling explains (mean differences 0.04 to
+    0.17), so the calibration decides *which* cells succeed, while the
+    patterns across cells stay. The sensitivity runs used severe stress only.
+
+### New in October 2026, second round: the open questions
+
+20. **Introduction beats origination with tight neighbours because of the
+    support that comes with it.** Without the subsidy and outside
+    demonstrators (`--no-support`), introduction falls from 57% to 44%,
+    exactly the origination rate, and cell by cell the two modes become
+    indistinguishable (mean difference 0.024, the size of sampling noise).
+    Support also halved the penalty for a tight seed group (tightness effect
+    on introduction −0.10 with support, −0.22 without, as for origination)
+    and lifted a mid-power seed from 70% to 95%. In the middling background
+    the two modes tie on average (25% each), consistent with support being
+    offset there by the ownership penalty that parochial groups attach to an
+    outsider's practice (finding 7).
+21. **The parochial filter is what keeps the closed group out.** In the
+    extreme scenario without conformity, switching the filter off too lets
+    Closed adopt from any starting point: at scarcity every seeding except
+    Marginal's sustains the commons in 100% of runs (Marginal, too weak to
+    be copied under power-weighted shares, still fails). During plenty an
+    introduced practice still does better than an originated one (Closed:
+    100% against 8%), again the support carrying the practice until it pays.
+22. **Without conformity, adoption settles just below the threshold, at any
+    level of stress.** In the extreme scenario without conformity:
+    - at ρ = 0.75 the commons needs only 0.625, yet adoption stops at 0.56
+      to 0.58: Dominant and Open adopt, Marginal stays at 0.24 and Closed out,
+      with a 3% shortage left; seeding Closed brings Closed in but Open drops
+      to 0.32. Nothing is sustained apart from Closed seeded (14% at
+      scarcity, 70% introduced during plenty). The expected outcome
+      (three adopting groups clear the lower threshold) did not happen:
+      with less stress there is less to gain from saving, so adoption stops
+      lower;
+    - at ρ = 0.65 (A* = 0.875) adoption reaches 0.82 at best, with Marginal
+      at 0.28 and a 4% shortage, and nothing is sustained;
+    - at 1,500 steps instead of 500 (ρ = 0.7) the outcomes are the same
+      (every group seeded at scarcity 100% → 92%; everything else
+      unchanged). Where a small shortage is present it persists rather than
+      growing. Where there is none but adoption is just under A*, the
+      deficit is below 1% of the recharge, too small for 1,500 steps to tell
+      a very slow drain from a steady state.
+    Payoff-driven learning stops where saving just pays for itself, which
+    leaves a small chronic shortage (consistent with the shortage-equals-cost
+    equilibrium of verification check V5). Crossing the threshold needs something that
+    holds adoption above what pays privately: in E1, the sanctions of tight
+    groups (finding 5).
 
 ## What this says, in one paragraph
 
@@ -174,23 +246,29 @@ Within this model, where to start matters less than who will refuse. A
 resource-saving practice spreads from a loose group and fails in a tight one.
 It reaches the other groups only if their members can see it pay, which
 power-weighted water shares prevent for a weak pioneer and spare a powerful
-group from. It is held above the threshold by sanctions, part of the same
-tightness whose conformity blocks it at the start. When some groups are tight
-and closed, no starting point is enough while their conformity holds; if it
-weakens, the practice has to start inside the closed group, whose parochial
-filter otherwise keeps it out. Sharing shortages equally helped in every run
-set where it was tried.
+group from. Left to what pays privately, adoption stops just short of what
+the commons needs, with a small shortage left over; it is held
+above the threshold by sanctions, part of the same tightness whose conformity
+blocks it at the start. When some groups are tight and closed, no starting
+point is enough while their conformity holds; if it weakens, the practice
+has to start inside the closed group, whose parochial filter otherwise keeps
+it out. Outside support (a subsidy and demonstrators) helps an introduced
+practice through the period before it pays. Sharing shortages equally helped
+in every run set where it was tried. These conclusions held under every
+calibration tried; the success rates did not.
 
 ## Caveats
 
-- One calibration (A3). Roadmap step 4 (`--set`, new in 0.2.2) tests which
-  conclusions survive moving the learning slope, the conformity exponent and
-  the value of scarce water.
+- The calibration (A3) changes the success rates a great deal (single seeds
+  8 to 40%) but not the conclusions (finding 19). The sensitivity runs moved
+  one parameter at a time, under severe stress only.
 - Five groups of equal size in E1 and E1b; the scenarios vary sizes only in
   the example file.
-- Findings 12 (introduction beats origination with tight neighbours), 17 (the
-  role of the parochial filter) and 18 are from fewer runs or small checks and
-  are flagged in `ROADMAP.md` for a proper test.
+- "Sustained" is strict: a run that ends just below A* with a 1 to 4%
+  shortage counts as not sustained (finding 22). Read it with the adoption
+  gap, the shortage and the adoption in each group.
+- Findings 21 and 22 come from one invented four-group scenario; they show
+  what the model can do, not how common it is.
 - The model is a tool for thinking about mechanisms, not a forecast for any
   real basin. Describing real communities needs the people who know them
-  (ROADMAP step 3b).
+  (ROADMAP, real groups).

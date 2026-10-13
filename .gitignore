@@ -1,7 +1,22 @@
+# environments
 .venv/
 venv/
+.env
+
+# Python and tool caches
 __pycache__/
 *.py[cod]
-.DS_Store
-.env
+.pytest_cache/
+.mypy_cache/
 .ipynb_checkpoints/
+
+# build output (built fresh for each release; see PUBLISHING.md)
+dist/
+build/
+*.egg-info/
+
+# checkpoints of interrupted runs (removed automatically when a run finishes)
+commons_output/*_checkpoint.npz
+
+# macOS
+.DS_Store

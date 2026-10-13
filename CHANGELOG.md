@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+Documentation only (no code changes), from the second round of October runs
+(calibration sensitivity with `--set`, `--no-support`, and three scenario
+checks).
+
+- `docs/commons-findings.md`: findings 19 to 22 (the conclusions survive the
+  calibration; outside support explains why introduction can beat
+  origination; the parochial filter keeps the closed group out; payoff
+  learning alone settles just below the threshold, at every stress level
+  tried), and corrections to findings 12, 17 and 18.
+- New raw reports: `docs/commons-results-sensitivity.md` and
+  `docs/commons-results-open-questions.md`.
+- README, ROADMAP (what each step found against what was expected; next:
+  real groups at three calibrations, short follow-ups, identifiability in
+  0.2.3) and TESTING (checks C14 to C16).
+
+
 ## 0.2.2 — 2026-10-13
 
 From the October runs of `miras.commons` (cross-checks, replications with
