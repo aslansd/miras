@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: miras
-Version: 0.2.1
+Version: 0.2.2
 Summary: Cultural inheritance, simulated and interrogated: agent-based models of cultural evolution and a check of whether your study design can recover their parameters.
 Author: Aslan Satary Dizaji
 License-Expression: Apache-2.0
@@ -491,18 +491,20 @@ people learn from their own group or, via contact, prestige and a parochial
 filter, from others. Every mechanism has a switch, so any result can be traced
 to the mechanism behind it. The model, step by step, with every default, is in
 `docs/commons-model.md`; the reasoning behind each design choice is in the
-model specification (with amendments A1 to A4).
+model specification (with amendments A1 to A4), `docs/commons-specification.pdf`.
 
 ### Commands
 
 ```
 miras commons pilot                            # which regimes occur (a couple of minutes)
 miras commons e1 --cores 8                     # E1: 3,904 cells x 50 runs (~1 h 45 min on 8 cores)
-miras commons e1 --background tightness=low    # E1b: one background attribute changed (0.2.1)
-miras commons e1 --rho 0.7 --off power_share   # E3: a knockout, severe stress only (~50 min)
-miras commons example > groups.json            # a scenario file to edit (0.2.1)
+miras commons e1 --background tightness=low    # E1b: one background attribute changed
+miras commons e1 --rho 0.7 --off power_share   # E3: a knockout, severe stress only (~1 h)
+miras commons e1 --rho 0.7 --seed 2            # a replication: writes e1-rho0.7-seed2_* (0.2.2)
+miras commons e1 --rho 0.7 --set learning.theta=2   # calibration sensitivity (0.2.2)
+miras commons example > groups.json            # a scenario file to edit
 miras commons scenario groups.json             # E2: your own groups, each seeded in each mode
-miras commons analyze commons_output/e1_summary.csv commons_output/e1-off-power_share_summary.csv
+miras commons analyze commons_output/e1_summary.csv commons_output/e1-rho0.7-off-power_share_summary.csv
 ```
 
 - `--background` takes `low`, `mid` or `high` (all five background attributes)
@@ -512,12 +514,25 @@ miras commons analyze commons_output/e1_summary.csv commons_output/e1-off-power_
 - `--off` switches mechanisms off: `tight_conformity`, `tight_sanctions`,
   `tight_caution`, `ingroup_value`, `outgroup_filter`, `ownership_bias`,
   `ownership_rejection`, `wealth_cost`, `power_prestige`, `power_share`.
+- `--set section.field=value` (0.2.2, repeatable) changes any field of
+  `learning`, `innovation` or `resource` (listed with their defaults in
+  `docs/commons-model.md`), e.g. `--set learning.beta_s=5 --set innovation.cost=0.2`.
+- `--no-support` (0.2.2) introduces the innovation without the subsidy and
+  the outside demonstrators that otherwise come with introduction.
+- Output names say what was run (0.2.2): `-off-...`, `-nosupport`,
+  `-set-...`, `-steps<n>` (when not 500) and `-seed<k>` (when not 1), so
+  replications and variants can share one folder. Names of runs with the
+  defaults are as before.
 - Every run writes one CSV row per run, a summary CSV (mean and 95% interval
   per cell) and a Markdown report; runs checkpoint and resume exactly.
+  Scenario reports also give the adoption in each group (0.2.2), which is
+  usually what explains a scenario's result.
 - `analyze` turns one or more summaries into tables: references, main
   effects of each seed attribute, where adoption happens by power, tightness by
   power, introduce versus originate by parochialism, scarcity versus plenty,
-  the best seed groups, and (for several files) effect sizes side by side.
+  the best seed groups, and, for several files, effect sizes side by side and
+  (0.2.2) a cell-by-cell comparison that says whether two runs differ by more
+  than sampling noise.
 
 A scenario file (`miras commons example` prints a fuller one):
 
@@ -530,64 +545,83 @@ A scenario file (`miras commons example` prints a fuller one):
 
 Attributes left out take their defaults (size 200, tightness, altruism and
 parochialism 0.5, wealth and power 1, contact 0.1). A mistake in the file is
-reported in one line saying what to change.
+reported in one line saying what to change. `examples/extremes.json` is a
+stress test with four groups at the extremes of the attributes.
 
-### What the first runs show (0.2.0, September 2026)
+### What the runs show (September–October 2026)
 
-From the first full runs on an 8-core Mac: E1 (mid background), E1b with all
-five background attributes low, and E3 with sanctions switched off. The full
-tables are in `docs/commons-results-0.2.0.md`; regenerate them with
-`miras commons analyze`. Numbers are averages over cells of 50-run means and
-are conditional on the calibration (amendment A3); the comparisons are the
-robust part, not the exact percentages.
+Twenty-three full runs on an 8-core Mac (miras 0.2.0 and 0.2.1, which give
+identical numbers for the same seed, as does 0.2.2): E1, six mechanism
+knockouts, seven backgrounds, two knockouts inside backgrounds, two
+replications with other seeds, and four scenarios. The full list of eighteen
+findings, with the numbers, is in **`docs/commons-findings.md`**; the tables
+behind them are in `docs/commons-results-*.md` and can be regenerated with
+`miras commons analyze`. Numbers are conditional on the calibration
+(amendment A3): read the comparisons, not the exact percentages. Severe stress
+means ρ = 0.7, mild stress ρ = 0.85; "sustained" means adoption ends above the
+share the commons needs.
 
-1. **Under mild water stress (ρ = 0.85), no single seed group sustains the
-   commons**, in any mode, timing or condition. Only seeding every group does
-   (54 to 72% of runs when seeded at scarcity).
-2. **Under severe stress (ρ = 0.7) the seed group matters.** Averaged over
-   profiles a single seed sustains the commons in about 25% of runs; the best
-   profiles in about 95%.
-3. **Tight groups are poor places to start.** Sustained share by seed
-   tightness, low / mid / high: 45% / 30% / 1%. The effect survives with
-   sanctions switched off (−0.40 instead of −0.44), so it comes from
-   conformity and caution rather than punishment; it keeps its direction with a
-   low background (−0.24 on mean adoption).
-4. **Sanctions protect what is already widespread.** Without them, seeding
-   every group under severe stress sustains the commons in 9% of runs instead
-   of 96%, while single seeds do slightly better and, under mild stress,
-   sometimes succeed. Sanctions hinder the start and hold the finish.
-5. **Parochialism matters only when the innovation comes from outside**
-   (−0.14 on the sustained share when introduced, 0.00 when originating): the
-   ownership mechanism.
-6. **Power is non-monotonic** (0% / 46% / 29% for low / mid / high). A
-   low-power group adopts (40%) but no other group copies it; a high-power group
-   adopts less itself. The likely reason is who gets the water in a shortage:
-   learners compare utilities, and a low-power group's members look worse off.
-   This reading is a hypothesis until the `power_share` knockout is run.
-7. **Best origin under severe stress:** a loose, altruistic, mid-power group
-   (sustained in about 95% of runs, originating or introduced).
-8. **The low background (E1b) sustains nothing, but not because nothing
-   spreads**: adoption outside the seed group is higher than with a mid
-   background (61% vs 43% under severe stress, seeded at scarcity, high contact) and stalls short of the threshold the commons needs
-   (adoption gap −0.27 vs −0.43). That background changed all five attributes
-   at once (poorer, less altruistic, less powerful and looser), so it cannot say
-   which one matters; 0.2.1 adds one-attribute backgrounds for that.
+1. **Under mild stress no single seed group sustains the commons** (0%). Only
+   seeding every group does, and only as shortages begin (63%), not during
+   plenty (4%).
+2. **Tight groups are poor starting points, because of conformity**: 45% /
+   30% / 1% by the seed group's tightness, levelled without conformity
+   (38% / 42% / 32%), barely changed without caution or sanctions.
+3. **Sanctions hold the finish**: every group seeded, 96% sustained; without
+   sanctions, 9%.
+4. **Power works through the water, not prestige**: 0% / 46% / 29% by the
+   seed group's power, unchanged without prestige, 41% / 46% / 47% with equal
+   shares in a shortage (single-seed success 25% → 45%).
+5. **Parochialism matters only for outsiders' practices, through ownership**
+   (−0.14 on introduction, 0.00 on origination; −0.04 without ownership).
+6. **The neighbours matter more than the pioneer**: single-seed success with
+   loose neighbours 41%, middling 25%, more powerful 15%, poorer 4%, less
+   altruistic 0%, tight 0%. **Power is relative**: with more powerful
+   neighbours only an equally powerful pioneer succeeds.
+7. **The neighbour effects run through the same mechanisms** (cross-checks,
+   October 2026). With equal water shares, a pioneer weaker than its
+   neighbours succeeds again (15% → 40%; seed power 0/0/46% → 34/41/46%).
+   Without conformity, tight neighbours stop blocking the practice (0% →
+   88% with every group seeded, 44% / 57% for single seeds).
+8. **The effects are not Monte Carlo noise** (replication with seeds 2 and 3):
+   every headline number reproduces to within 0.01, and the cell-by-cell
+   differences are exactly what sampling 50 runs per cell predicts.
+9. **In scenarios, the groups that refuse decide the outcome.** In the example
+   scenario only the loose, altruistic group adopts; the powerful tight one
+   and the poor one do not, and nothing is sustained. With four extreme
+   groups, the two tight groups never adopt and no starting point is enough;
+   without conformity the commons is sustained only when the practice starts
+   in the closed, parochial group (or in every group at once), because its
+   parochial filter keeps it from copying anyone else.
+10. **Where nothing holds a majority in place, adoption falls back to where
+    saving stops paying.** Once enough groups save water the shortage
+    disappears and saving stops paying for the individual. Sanctions hold a
+    seeded majority well above the share the commons needs (mean adoption
+    0.92; without sanctions 0.52); in the extreme scenario, where the group
+    that leaves is loose and under little norm pressure, adoption ends within
+    a few hundredths of the threshold. The sustained share alone can mislead
+    there; the adoption in each group and the adoption gap do not.
+
+Best origin under severe stress: a loose, mid-power group (sustained in about
+95% of runs, originating or introduced); about ten such profiles are equally
+good, and their order changes between seeds. The scenario groups are invented;
+they are not a model of any real place.
 
 ### What comes next
 
-The plan, in order (details in `ROADMAP.md`):
+Details and commands in `ROADMAP.md`.
 
-1. **Knockouts to explain findings 3 and 6**: `power_share`,
-   `power_prestige`, `tight_conformity`, `tight_caution`, and
-   `ownership_bias` to confirm finding 5. Each under severe stress only
-   (`--rho 0.7`, about 50 minutes), then compared with `analyze`.
-2. **One-attribute backgrounds (E1b)**: `--background tightness=low`,
-   `tightness=high`, `wealth=low`, `altruism=low` and `power=high`, to see which
-   findings depend on the population the seed group sits in.
-3. **Real groups (E2)** for a case you have in mind.
-4. **Calibration sensitivity (amendment A3)**, then the **identifiability
-   study**: which field designs could tell apart the mechanisms these runs
-   find decisive.
+1. **Calibration sensitivity (amendment A3)**, now possible with `--set`:
+   rerun the headline comparisons with the payoff-learning slope, the
+   conformity exponent and the value of scarce water moved up and down.
+2. **Open questions from the October runs**: why introduction beats
+   origination with tight neighbours, and a proper test of the parochial filter
+   and of the threshold effect in the extreme scenario.
+3. **Real groups (E2)**: a scenario file describing a real case, built with
+   people who know it, never by assigning traits to communities from outside.
+4. **Identifiability**: which field data (surveys, repeated surveys, network
+   questions, measures of disapproval) could tell "conformity holds the
+   practice back" from "unequal water shares hold it back".
 
 **Checked before use.** Nine verification checks with known answers pass (`tests/test_commons.py`):
 the stock drains and the first shortage arrives at the exact predicted step;
@@ -678,9 +712,9 @@ pytest -q                      # engine vs. theory, detectors vs. ground truth
 pytest -q --run-slow           # also fits Stan models (needs CmdStan)
 ```
 
-Expected: `130 passed, 1 skipped` (the skip is the slow Stan test). The core
-install (numpy only) also works: tests that need matplotlib, pandas or daftar
-skip themselves.
+Expected: `145 passed, 1 skipped` (the skip is the slow Stan test; without
+daftar installed, `144 passed, 2 skipped`). The core install (numpy only)
+also works: tests that need matplotlib, pandas or daftar skip themselves.
 
 The detector tests are the ones that matter. Toy simulators with known
 identifiability (a product, sum or ratio of two parameters; an irrelevant

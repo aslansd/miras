@@ -6,6 +6,7 @@
     miras commons e1 --rho 0.7 --off power_share # E3: a knockout, severe stress only
     miras commons example > groups.json          # a scenario file to edit
     miras commons scenario groups.json           # E2: your own groups
+    miras commons e1 --rho 0.7 --set learning.theta=2   # calibration sensitivity (0.2.2)
     miras commons analyze commons_output/e1_summary.csv [more summaries ...]
 
 Long runs checkpoint every two minutes and on Ctrl-C; rerun the same command
@@ -31,34 +32,57 @@ def _common(p):
     p.add_argument("--off", default="", help="comma-separated mechanisms to switch off (E3)")
     p.add_argument("--fresh", action="store_true", help="ignore a checkpoint and start over")
     p.add_argument("--track", action="store_true", help="record the run with daftar")
+    p.add_argument("--no-support", action="store_true",
+                   help="introduce without the subsidy and outside demonstrators (0.2.2)")
+    p.add_argument("--set", action="append", default=[], metavar="SECTION.FIELD=VALUE",
+                   help="override a model parameter, e.g. learning.theta=2 or innovation.cost=0.2 "
+                        "(sections: learning, innovation, resource); repeatable")
 
 
 def _off(args):
     return tuple(x.strip() for x in args.off.split(",") if x.strip())
 
 
-def _run(cells, args, label, config=None):
+def run_tag(label, off=(), sets=None, seed=1, support=True, steps=500):
+    """Output file stem: label, then -off-..., -nosupport, -set-...,
+    -steps<n> when not 500, and -seed<k> when the seed is not 1 (0.2.2;
+    names of 0.2.1 runs are unchanged)."""
+    tag = label + (("-off-" + "-".join(off)) if off else "")
+    tag += "" if support else "-nosupport"
+    s = ex.sets_label(sets or {})
+    tag += f"-{s}" if s else ""
+    tag += f"-steps{steps}" if steps != 500 else ""
+    return tag + (f"-seed{seed}" if seed != 1 else "")
+
+
+def _run(cells, args, label, config=None, sets=None):
     from ..provenance import tracked
     os.makedirs(args.outdir, exist_ok=True)
     off = _off(args)
-    base = ex.base_settings(off, args.steps)
-    tag = label + (("-off-" + "-".join(off)) if off else "")
+    support = not args.no_support
+    base = ex.base_settings(off, args.steps, None if config else sets, support=support)
+    steps = 500 if label.endswith("-quick") else args.steps     # --quick is already in the label
+    tag = run_tag(label, off, sets, args.seed, support, steps)
+    names = ex.outcome_names(config)
     ck = ex.checkpoint_for(os.path.join(args.outdir, f"{tag}_checkpoint.npz"),
                            {"label": tag, "reps": args.reps, "steps": args.steps, "seed": args.seed,
-                            "n_cells": len(cells)})
+                            "n_cells": len(cells), "sets": sets or {}, "support": support})
     if args.fresh:
         ck.remove()
+    extras = [f"mechanisms off: {', '.join(off)}"] if off else []
+    extras += [f"set: {ex.sets_label(sets)[4:]}"] if sets else []
+    extras += ["introduced without subsidy or demonstrators"] if not support else []
     print(f"{len(cells)} cells x {args.reps} runs = {len(cells) * args.reps} runs on {args.cores} cores"
-          + (f"; mechanisms off: {', '.join(off)}" if off else ""), flush=True)
+          + "".join(f"; {e}" for e in extras), flush=True)
     params = {"label": tag, "reps": args.reps, "steps": args.steps, "off": ",".join(off),
-              "n_cells": len(cells)}
+              "n_cells": len(cells), "set": ex.sets_label(sets or {}), "support": support}
     with tracked(f"commons-{tag}", params=params, seed=args.seed, enabled=args.track) as run:
         out = ex.run_cells(cells, args.reps, cores=args.cores, seed=args.seed, steps=args.steps,
                            base=base, config=config, checkpoint=ck)
-        rows = ex.summarise(cells, out)
+        rows = ex.summarise(cells, out, names)
         runs_path = os.path.join(args.outdir, f"{tag}_runs.csv")
         sum_path = os.path.join(args.outdir, f"{tag}_summary.csv")
-        ex.write_runs(runs_path, cells, out)
+        ex.write_runs(runs_path, cells, out, names)
         ex.write_summary(sum_path, rows)
         report = ex.scenario_report(rows, config) if config else ex.e1_report(rows)
         rep_path = os.path.join(args.outdir, f"{tag}_report.md")
@@ -87,7 +111,9 @@ def cmd_e1(argv):
         levels = ex.parse_background(args.background)
         cells = ex.e1_cells(background=args.background, rho=args.rho, contact=args.contact,
                             timing=args.timing)
-    except ValueError as exc:
+        sets = ex.parse_sets(args.set)
+        ex.base_settings(_off(args), args.steps, sets)          # check before running
+    except (ValueError, KeyError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
     bg = ex.background_label(levels)
@@ -95,7 +121,7 @@ def cmd_e1(argv):
     for name, vals in (("rho", args.rho), ("contact", args.contact), ("timing", args.timing)):
         if vals:
             label += f"-{name}" + "_".join(f"{v:g}" if isinstance(v, float) else v for v in vals)
-    _run(cells, args, label + ("-quick" if args.quick else ""))
+    _run(cells, args, label + ("-quick" if args.quick else ""), sets=sets)
     return 0
 
 
@@ -107,11 +133,14 @@ def cmd_scenario(argv):
     args = p.parse_args(argv)
     try:
         config = ex.load_config(args.config)
-    except ex.ScenarioError as exc:
+        sets = ex.parse_sets(args.set)
+        config = ex.check_config(ex.apply_sets(config, sets))
+        ex.base_settings(_off(args), args.steps)
+    except (ValueError, KeyError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
     name = os.path.splitext(os.path.basename(args.config))[0]
-    _, report = _run(ex.scenario_cells(config), args, f"scenario-{name}", config=config)
+    _, report = _run(ex.scenario_cells(config), args, f"scenario-{name}", config=config, sets=sets)
     print("\n" + report)
     return 0
 

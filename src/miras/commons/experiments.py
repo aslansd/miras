@@ -45,6 +45,75 @@ class ScenarioError(ValueError):
     """A problem with a scenario file, explained for the user."""
 
 
+def group_names(config):
+    """Names of a scenario's groups, in order."""
+    return [Group(**g).name for g in config["groups"]]
+
+
+def outcome_names(config=None):
+    """Outcome columns of a run: OUTCOMES, plus (scenarios, 0.2.2) the mean
+    adoption in each group over the last 100 steps, `adoption_<group name>`."""
+    if not config:
+        return OUTCOMES
+    return OUTCOMES + tuple(f"adoption_{n}" for n in group_names(config))
+
+
+# --------------------------------------------------------------------------- #
+# Parameter overrides (0.2.2: --set section.field=value)
+# --------------------------------------------------------------------------- #
+SET_SECTIONS = {"learning": Learning, "innovation": Innovation, "resource": Resource}
+
+
+def parse_sets(specs):
+    """['learning.theta=2', 'innovation.cost=0.2'] -> {'learning': {'theta': 2.0},
+    'innovation': {'cost': 0.2}}. Values take the type of the field's default.
+    Raises ValueError with a message saying what to change."""
+    import dataclasses
+    out = {}
+    for spec in specs or ():
+        if "=" not in spec or "." not in spec.split("=", 1)[0]:
+            raise ValueError(f"--set '{spec}': use section.field=value, e.g. learning.theta=2")
+        key, value = spec.split("=", 1)
+        section, name = (x.strip() for x in key.split(".", 1))
+        if section not in SET_SECTIONS:
+            raise ValueError(f"--set '{spec}': unknown section '{section}'; "
+                             f"choose from {', '.join(SET_SECTIONS)}")
+        fields = {f.name: f for f in dataclasses.fields(SET_SECTIONS[section])}
+        if name not in fields:
+            raise ValueError(f"--set '{spec}': {section} has no field '{name}'; "
+                             f"fields: {', '.join(fields)}")
+        default = fields[name].default
+        try:
+            if isinstance(default, bool):
+                if value.strip().lower() not in ("true", "false", "1", "0"):
+                    raise ValueError
+                v = value.strip().lower() in ("true", "1")
+            elif isinstance(default, int):
+                v = int(value)
+            else:
+                v = float(value)
+        except ValueError:
+            raise ValueError(f"--set '{spec}': '{value}' is not a valid "
+                             f"{type(default).__name__}") from None
+        out.setdefault(section, {})[name] = v
+    return out
+
+
+def sets_label(sets):
+    """A file-name fragment for overrides, e.g. 'set-theta2-beta_s5' ('' if none)."""
+    parts = [f"{k}{v:g}" if isinstance(v, float) else f"{k}{v}"
+             for sec in sets.values() for k, v in sec.items()]
+    return ("set-" + "-".join(parts)) if parts else ""
+
+
+def apply_sets(config, sets):
+    """A copy of a scenario config with overrides merged into its sections."""
+    cfg = json.loads(json.dumps(config))
+    for section, kw in (sets or {}).items():
+        cfg[section] = dict(cfg.get(section, {}), **kw)
+    return cfg
+
+
 # --------------------------------------------------------------------------- #
 # Backgrounds (0.2.1: one attribute at a time)
 # --------------------------------------------------------------------------- #
@@ -120,10 +189,12 @@ def build(cell, base=None):
     groups = [Group(name="seed", size=cell["size"], contact=cell["contact"], **seed_attrs)]
     groups += [Group(name=f"background{i}", size=cell["size"], contact=cell["contact"], **bg)
                for i in range(1, cell["n_groups"])]
+    resource = Resource(**dict(base.get("resource", {}), rho=cell["rho"]))
     model = CommonsModel(groups, innovation=base.get("innovation"),
-                         resource=Resource(rho=cell["rho"]), learning=base.get("learning"),
+                         resource=resource, learning=base.get("learning"),
                          mechanisms=base.get("mechanisms"))
-    return model, Seeding(mode=cell["mode"], group=0, timing=cell["timing"])
+    return model, Seeding(mode=cell["mode"], group=0, timing=cell["timing"],
+                          support=base.get("support", True))
 
 
 def scenario_cells(config):
@@ -149,7 +220,8 @@ def build_scenario(cell, config, base=None):
                          resource=Resource(**config.get("resource", {})),
                          learning=Learning(**config.get("learning", {})),
                          mechanisms=base.get("mechanisms"))
-    return model, Seeding(mode=cell["mode"], group=cell["seed_index"], timing=cell["timing"])
+    return model, Seeding(mode=cell["mode"], group=cell["seed_index"], timing=cell["timing"],
+                          support=base.get("support", True))
 
 
 # --------------------------------------------------------------------------- #
@@ -158,8 +230,12 @@ def build_scenario(cell, config, base=None):
 def _job(args):
     k, cell, seed, steps, base, config = args
     model, sd = build_scenario(cell, config, base) if config else build(cell, base)
-    o = model.run(steps, sd, seed=seed).outcomes()
-    return k, np.array([float(o[name]) for name in OUTCOMES])
+    res = model.run(steps, sd, seed=seed)
+    o = res.outcomes()
+    vals = [float(o[name]) for name in OUTCOMES]
+    if config:                       # 0.2.2: adoption in each group, last 100 steps
+        vals += [float(x) for x in res.adoption[-100:].mean(axis=0)]
+    return k, np.array(vals)
 
 
 def run_cells(cells, reps, *, cores=1, seed=1, steps=500, base=None, config=None,
@@ -169,7 +245,7 @@ def run_cells(cells, reps, *, cores=1, seed=1, steps=500, base=None, config=None
     interrupted run resumed from `checkpoint` gives identical results."""
     n = len(cells) * reps
     seeds = np.random.SeedSequence(seed).generate_state(n, dtype=np.uint64) % (2**63)
-    out = np.full((len(cells), reps, len(OUTCOMES)), np.nan)
+    out = np.full((len(cells), reps, len(outcome_names(config))), np.nan)
     done = np.zeros(n, bool)
     state = checkpoint.load() if checkpoint else None
     if state is not None:
@@ -205,23 +281,23 @@ def run_cells(cells, reps, *, cores=1, seed=1, steps=500, base=None, config=None
 # --------------------------------------------------------------------------- #
 # Output and analysis
 # --------------------------------------------------------------------------- #
-def write_runs(path, cells, out):
+def write_runs(path, cells, out, names=OUTCOMES):
     keys = list(cells[0])
     with open(path, "w", newline="") as fh:
         w = csv.writer(fh)
-        w.writerow(keys + ["replicate"] + list(OUTCOMES))
+        w.writerow(keys + ["replicate"] + list(names))
         for c, cell in enumerate(cells):
             for r in range(out.shape[1]):
                 w.writerow([cell[k] for k in keys] + [r] + [f"{v:.6g}" for v in out[c, r]])
 
 
-def summarise(cells, out):
+def summarise(cells, out, names=OUTCOMES):
     """Per cell: mean and 95% interval (normal approximation) of each outcome."""
     rows = []
     reps = out.shape[1]
     for c, cell in enumerate(cells):
         row = dict(cell)
-        for j, name in enumerate(OUTCOMES):
+        for j, name in enumerate(names):
             x = out[c, :, j]
             x = x[np.isfinite(x)]
             m = float(x.mean()) if x.size else float("nan")
@@ -282,6 +358,7 @@ def e1_report(rows, top=3):
 
 
 def scenario_report(rows, config):
+    names = group_names(config)
     out = ["# Scenario results", ""]
     for timing in sorted({r["timing"] for r in rows}):
         sub = [r for r in rows if r["timing"] == timing]
@@ -294,12 +371,37 @@ def scenario_report(rows, config):
                        f"{r['mean_adoption_last']:.2f} \u00b1 {r['mean_adoption_last_ci']:.2f} | "
                        f"{r['reach']:.1f} | {r['gini_payoff']:.3f} |")
         out.append("")
+        if all(f"adoption_{n}" in sub[0] for n in names):
+            # 0.2.2: which groups hold out explains most scenario results
+            out += [f"Adoption in each group (mean of the last 100 steps), seeded during {timing}:", "",
+                    "| seeding | " + " | ".join(names) + " | shortage | sustained |",
+                    "| --- | " + " | ".join("---" for _ in names) + " | --- | --- |"]
+            order = {"none": 0, "all": 1}
+            mode_order = {"originate": 0, "introduce": 1}
+            for r in sorted(sub, key=lambda r: (order.get(r["mode"], 2), r["seed_index"], mode_order.get(r["mode"], 0))):
+                label = {"none": "no innovation", "all": "every group"}.get(
+                    r["mode"], f"{r['seed_name']} {r['mode']}")
+                out.append(f"| {label} | " + " | ".join(f"{r[f'adoption_{n}']:.2f}" for n in names)
+                           + f" | {r['mean_shortage_last']:.2f} | {r['sustained']:.0%} |")
+            out += ["", f"The commons needs an overall adoption share of "
+                        f"{sub[0]['a_star']:.2f} (A*); \"sustained\" also needs the shortage "
+                        f"to stay below the collapse threshold.", ""]
     return "\n".join(out) + "\n"
 
 
-def base_settings(off=(), steps=500):
+def base_settings(off=(), steps=500, sets=None, support=True):
+    """Shared settings for E1 cells. `sets` (from `parse_sets`) overrides
+    learning, innovation and resource fields (rho stays a cell condition).
+    support=False (0.2.2, --no-support): an introduced innovation comes
+    without the subsidy and the outside demonstrators."""
+    sets = sets or {}
     mech = Mechanisms().without(*off) if off else Mechanisms()
-    return {"mechanisms": mech, "innovation": Innovation(), "learning": Learning(), "steps": steps}
+    resource = dict(sets.get("resource", {}))
+    if "rho" in resource:
+        raise ValueError("resource.rho is an E1 condition: use --rho instead of --set resource.rho")
+    return {"mechanisms": mech, "innovation": Innovation(**sets.get("innovation", {})),
+            "learning": Learning(**sets.get("learning", {})), "resource": resource, "steps": steps,
+            "support": support}
 
 
 EXAMPLE_SCENARIO = {
@@ -324,7 +426,6 @@ def example_scenario_json() -> str:
 def load_config(path):
     """Read and check a scenario file; every problem is a ScenarioError with a
     message that says what to change."""
-    import dataclasses
     hint = f"Create one with: miras commons example > {path}"
     if not os.path.exists(path):
         raise ScenarioError(f"scenario file '{path}' not found (in {os.getcwd()}). {hint}")
@@ -335,6 +436,12 @@ def load_config(path):
         raise ScenarioError(f"'{path}' is not valid JSON: {exc}") from None
     if not isinstance(cfg, dict) or not isinstance(cfg.get("groups"), list) or not cfg["groups"]:
         raise ScenarioError(f"'{path}' needs a non-empty \"groups\" list. {hint}")
+    return check_config(cfg)
+
+
+def check_config(cfg):
+    """Check a scenario config (a dict); returns it, or raises ScenarioError."""
+    import dataclasses
     allowed = {"groups", "resource", "innovation", "learning", "timings"}
     extra = set(cfg) - allowed
     if extra:
@@ -371,7 +478,8 @@ def checkpoint_for(path, key):
 
 
 __all__ = ["LEVELS", "CONDITIONS", "MODES", "OUTCOMES", "ScenarioError", "parse_background",
+           "group_names", "outcome_names", "parse_sets", "sets_label", "apply_sets", "SET_SECTIONS",
            "background_label", "EXAMPLE_SCENARIO", "example_scenario_json", "e1_cells", "build", "scenario_cells",
            "build_scenario", "run_cells", "write_runs", "summarise", "write_summary",
-           "e1_report", "scenario_report", "base_settings", "load_config", "checkpoint_for",
+           "e1_report", "scenario_report", "base_settings", "load_config", "check_config", "checkpoint_for",
            "asdict", "replace"]

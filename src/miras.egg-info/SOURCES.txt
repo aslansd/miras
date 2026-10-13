@@ -11,9 +11,18 @@ TESTING.md
 pyproject.toml
 docs/_commons_model_head.md
 docs/_generate_commons_model.py
+docs/commons-findings.md
 docs/commons-model.md
-docs/commons-results-0.2.0.md
+docs/commons-results-backgrounds.md
+docs/commons-results-crosschecks.md
+docs/commons-results-e1.md
+docs/commons-results-knockouts.md
+docs/commons-results-replication.md
+docs/commons-results-scenarios.md
+examples/commons_scenario.json
 examples/equifinality.py
+examples/extremes.json
+examples/per_group.py
 src/miras/__init__.py
 src/miras/__main__.py
 src/miras/cli.py
@@ -62,6 +71,7 @@ tests/conftest.py
 tests/test_cli.py
 tests/test_commons.py
 tests/test_commons_v021.py
+tests/test_commons_v022.py
 tests/test_engine.py
 tests/test_identify.py
 tests/test_inference.py

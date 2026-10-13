@@ -17,6 +17,10 @@ python -m build              # writes dist/miras-X.Y.Z.tar.gz and dist/miras-X.Y
 twine check dist/*           # both must say PASSED
 ```
 
+`dist/`, `build/` and `src/miras.egg-info/` are build output and are not
+kept in git (they are in `.gitignore` from 0.2.2); build them fresh for each
+release.
+
 ## 2. Upload
 
 ```
@@ -49,7 +53,7 @@ pip install --no-cache-dir -U miras
 pip install "miras[all]" pytest
 install_cmdstan                  # once per machine; see README "Installing CmdStan"
 miras doctor                     # every line should say ok
-pytest -q                        # 130 passed, 1 skipped (0.2.1)
+pytest -q                        # 145 passed, 1 skipped (0.2.2)
 ```
 
 Then the end-to-end checks in `TESTING.md` (the README example and the four
@@ -68,23 +72,29 @@ paper workflows).
 
 ## The 0.2 series
 
-0.2.0 added `miras.commons`; 0.2.1 adds the analysis tools and fixes found in
-its first full runs. Nothing in 0.2.1 changes a simulation result: the same
-command and seed give the same numbers as 0.2.0 (checked by the unchanged V1
-to V9 tests and the resume test). 0.2.1 summaries have two extra columns
-(`a_star`, `adoption_gap`); `analyze` reads summaries from both versions.
+0.2.0 added `miras.commons`; 0.2.1 the analysis tools and fixes from its
+first full runs; 0.2.2 the adoption in each group, `--set`, `--no-support`,
+complete output names and replication checks in `analyze`. None of them
+changes a simulation result: the same command, seed and settings give the
+same numbers in all three (checked by the unchanged V1 to V9 tests, the
+resume test, `test_group_columns_do_not_change_the_other_outcomes`, and by
+rerunning the four October scenario runs). Each version adds columns
+(0.2.1: `a_star`, `adoption_gap`; 0.2.2: `adoption_<group>` in scenarios);
+`analyze` reads summaries from all three.
 
-Before uploading 0.2.1:
+Before uploading 0.2.2:
 
 1. `pytest -q` in a clean environment with `pip install "miras[all]" pytest`:
-   130 passed, 1 skipped.
-2. `miras commons example > /tmp/g.json && miras commons scenario /tmp/g.json --reps 3`
-   finishes and prints a report.
-3. `miras commons analyze` on the 0.2.0 summaries reproduces
-   `docs/commons-results-0.2.0.md`.
+   145 passed, 1 skipped.
+2. `miras commons scenario examples/extremes.json --reps 3` finishes and its
+   report has the table "Adoption in each group".
+3. `miras commons e1 --quick --set learning.theta=2` writes files named
+   `e1-quick-set-theta2_*`.
+4. `miras commons analyze commons_output/e1_summary.csv` reproduces
+   `docs/commons-results-e1.md` (apart from its heading and command).
 
-If 0.2.0 was never uploaded, uploading only 0.2.1 is fine: versions need not
-be consecutive on PyPI.
+The 0.2.1 documentation changes that were never released as a post-release
+are part of 0.2.2, so no `0.2.1.post1` is needed.
 
 ## PyPI releases are immutable
 
@@ -107,18 +117,3 @@ page catches up with the next upload.
 If a release is broken, *yank* it from the release's management page on PyPI
 rather than deleting it: pip then skips it unless the exact
 version is requested, and nobody's pinned install breaks.
-
-## Publishing documentation changes for 0.2.1
-
-The README on PyPI is the one inside the uploaded 0.2.1 files. To show the
-updated README (with the results of the full runs) without changing any code,
-upload a post-release:
-
-1. Set the version to `0.2.1.post1` in `pyproject.toml`, `src/miras/__init__.py`
-   and `CITATION.cff`.
-2. Turn the CHANGELOG's "Unreleased" heading into `0.2.1.post1 — <date>`.
-3. Build, check and upload as in sections 1 and 2.
-
-Alternatively, keep the changes unreleased until 0.2.2 (planned: `--set` for
-model parameters and the identifiability adapter); GitHub shows the new
-README as soon as it is pushed.

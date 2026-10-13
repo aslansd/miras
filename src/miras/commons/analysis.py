@@ -50,6 +50,68 @@ def run_name(path):
     return os.path.basename(path).replace("_summary.csv", "")
 
 
+def run_names(paths):
+    """Run names for the report; files with the same name (e.g. the same run
+    with different seeds in different folders) get their folder as a prefix,
+    so no run silently replaces another (0.2.2)."""
+    names = [run_name(p) for p in paths]
+    out = []
+    for p, n in zip(paths, names):
+        if names.count(n) > 1:
+            folder = os.path.basename(os.path.dirname(os.path.abspath(p))) or "."
+            n = f"{folder}/{n}"
+        out.append(n)
+    if len(set(out)) != len(out):
+        raise ValueError("the same summary file was given twice")
+    return out
+
+
+CELL_KEYS = ("rho", "contact", "timing", "background", "mode", "seed_index", "seed_name",
+             *(f"seed_{a}" for a in ATTRS), *(f"bg_{a}" for a in ATTRS))
+
+
+def _cell_key(r, keys=CELL_KEYS):
+    return tuple(r.get(k) for k in keys)
+
+
+def agreement(runs, rhos):
+    """Cell-by-cell agreement of every run with the first, over the cells they
+    share. For replications (same cells, different seeds) the mean absolute
+    difference in the sustained share should match what binomial sampling of
+    `reps` runs per cell predicts; much larger means more than Monte Carlo noise."""
+    names = list(runs)
+    lines = []
+    for n in names[1:]:
+        # only columns both files have (0.2.0 summaries lack the bg_* columns)
+        keys = [k for k in CELL_KEYS if k in runs[names[0]][0] and k in runs[n][0]]
+        first = {_cell_key(r, keys): r for r in runs[names[0]] if r["rho"] in rhos}
+        pairs = [(first[_cell_key(r, keys)], r) for r in runs[n] if _cell_key(r, keys) in first]
+        if len(pairs) < 10:
+            continue
+        a = np.array([[x["sustained"], y["sustained"]] for x, y in pairs])
+        g = np.array([[x["mean_adoption_last"], y["mean_adoption_last"]] for x, y in pairs])
+        reps = np.array([[x.get("reps", 50), y.get("reps", 50)] for x, y in pairs], float)
+        p = a.mean(axis=1)
+        expected = float(np.mean(np.sqrt(p * (1 - p) * (1 / reps[:, 0] + 1 / reps[:, 1]))
+                                 * np.sqrt(2 / np.pi)))
+        d = np.abs(a[:, 0] - a[:, 1])
+
+        def corr(m):
+            return float(np.corrcoef(m[:, 0], m[:, 1])[0, 1]) if m.std(axis=0).min() > 0 else float("nan")
+        lines.append(f"| {n} | {len(pairs)} | {_num(corr(a), '{:.3f}')} | {_num(corr(g), '{:.3f}')} | "
+                     f"{_num(d.mean(), '{:.3f}')} | {_num(expected, '{:.3f}')} | {_pct(d.max())} |")
+    if not lines:
+        return []
+    return ["## Cell-by-cell agreement with the first run", "",
+            f"Over the cells each run shares with `{names[0]}`. For a replication (same "
+            "cells, another seed) the mean absolute difference in the sustained share should "
+            "be close to the value expected from sampling alone; the effects in the tables "
+            "above average over many cells and so vary much less.", "",
+            "| run | shared cells | correlation, sustained | correlation, adoption | "
+            "mean abs. difference, sustained | expected from sampling | largest difference |",
+            "| --- | --- | --- | --- | --- | --- | --- |", *lines, ""]
+
+
 def _mean(rows, key):
     vals = [r[key] for r in rows if isinstance(r.get(key), float) and np.isfinite(r[key])]
     return float(np.mean(vals)) if vals else float("nan")
@@ -231,7 +293,7 @@ def comparison(runs, rhos):
 
 def analyze(paths, rho=None):
     """Markdown report for one or more summary CSVs."""
-    runs = {run_name(p): read_summary(p) for p in paths}
+    runs = dict(zip(run_names(paths), (read_summary(p) for p in paths)))
     all_rhos = sorted({r["rho"] for rows in runs.values() for r in rows}, reverse=True)
     rhos = [x for x in all_rhos if rho is None or x in [float(v) for v in rho]]
     first = next(iter(runs))
@@ -250,4 +312,5 @@ def analyze(paths, rho=None):
         out += best_profiles(runs[first], r, first)
     if len(runs) > 1:
         out += comparison(runs, rhos)
+        out += agreement(runs, rhos)
     return "\n".join(out) + "\n"

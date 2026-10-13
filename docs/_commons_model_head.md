@@ -2,8 +2,9 @@
 
 A compact reference to the model in `miras.commons`. The full design
 document, with the reasoning behind every choice, is the *miras.commons
-model specification* (September 2026, with amendments A1 to A4); this file
-records what the code implements.
+model specification* (September 2026, with amendments A1 to A4;
+`docs/commons-specification.pdf`); this file records what the code
+implements. What the runs found is in `docs/commons-findings.md`.
 
 Several groups share one resource (for example water). An innovation lets an
 adopter use a fraction δ less of it, at a cost κ. Groups differ in tightness,
@@ -59,3 +60,11 @@ Every mechanism can be switched off (`Mechanisms().without(...)`, or
 `ownership_rejection` (off by default: D4c), `wealth_cost`,
 `power_prestige`, `power_share`.
 
+## Parameter overrides (0.2.2)
+
+Any field of `Learning`, `Innovation` and `Resource` below can be changed for
+a run without editing code: `--set learning.theta=2 --set innovation.cost=0.2`
+on `miras commons e1` or `miras commons scenario` (repeatable). For E1 the
+water stress stays a condition (`--rho`); in a scenario `--set resource.rho=...`
+overrides the file. Overrides are part of the output file names
+(`...-set-theta2-cost0.2_summary.csv`) and of the checkpoint key.

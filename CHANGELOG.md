@@ -1,22 +1,65 @@
 # Changelog
 
-## Unreleased
+## 0.2.2 — 2026-10-13
 
-Documentation only (no code changes), from the full set of 0.2.1 runs.
+From the October runs of `miras.commons` (cross-checks, replications with
+seeds 2 and 3, and the extreme-group scenarios). Gives the same numbers as
+0.2.1 for the same seed and settings; this was checked on all four scenario
+runs.
 
-- README, "What the runs show": nine findings from fourteen full runs,
-  each mechanism now confirmed by its knockout (power acts through water
-  shares, not prestige; tightness through conformity; parochialism through
-  ownership) and the new background results (the neighbours matter more than
-  the seed group; power is relative).
-- `docs/commons-results-knockouts.md` and `docs/commons-results-backgrounds.md`:
-  the `analyze` reports behind them.
-- ROADMAP: what each planned step found against what was expected, and the
-  next steps (cross-checks, replication, real groups, calibration sensitivity
-  and identifiability, with 0.2.2 adding `--set` and an identifiability adapter).
-- TESTING: reference values for the knockout and background runs (C8 to C10).
-- README: the `analyze` example names the right file
-  (`e1-rho0.7-off-power_share_summary.csv`).
+**Experiments**
+- Scenario outputs give the adoption in each group (mean of the last 100
+  steps): `adoption_<group>` columns in the runs and summary CSVs, and a
+  per-group table in the report. This is what explained every scenario
+  result so far, and it replaces the helper script `examples/per_group.py`.
+- `--set section.field=value` (repeatable) on `miras commons e1` and
+  `scenario` changes any field of `learning`, `innovation` or `resource`,
+  for calibration sensitivity (amendment A3) without editing code. Values
+  are type-checked, unknown names are reported with the list of valid ones,
+  and `resource.rho` in E1 points to `--rho`.
+- `--no-support`: an introduced innovation comes without the subsidy and the
+  outside demonstrators.
+- Output names now say everything that differs from the defaults:
+  `-off-...`, `-nosupport`, `-set-...`, `-steps<n>` and `-seed<k>`. In 0.2.1
+  a second seed or a different number of steps overwrote the first run's
+  files unless a separate `--outdir` was used. Runs with the default seed and
+  steps keep their 0.2.1 names.
+
+**Analysis**
+- `analyze` keeps summaries with the same file name apart (prefixing the
+  folder) instead of silently keeping only the last one.
+- With several summaries, a cell-by-cell comparison: correlation, mean
+  absolute difference of the sustained share and the difference sampling
+  alone would produce. For replications it says whether two runs differ by
+  more than Monte Carlo noise; for knockouts, how much a mechanism changes
+  individual cells.
+
+**Documentation**
+- `docs/commons-findings.md`: eighteen findings from twenty-three full runs,
+  with the numbers. New raw reports: `commons-results-e1.md` (the E1 report the
+  README referred to as `commons-results-0.2.0.md`, which was missing),
+  `-crosschecks.md`, `-replication.md`, `-scenarios.md`; the knockout and
+  background reports regenerated in the same format, each with the command
+  that reproduces it.
+- The model specification moved to `docs/commons-specification.pdf`;
+  `docs/commons-model.md` documents `--set`.
+- README, ROADMAP, TESTING and PUBLISHING updated; the ROADMAP records what
+  each planned step found against what was expected, and the next steps
+  (calibration sensitivity with `--set`, three open questions, real groups,
+  identifiability).
+- Unreleased documentation changes after 0.2.1 (findings 1 to 10, the
+  knockout and background reports, TESTING checks C8 to C10) are part of
+  this release.
+
+**Repository**
+- Removed files that are generated or duplicated: `dist/` and
+  `src/miras.egg-info/` (built fresh for each release), `groups.json`
+  (identical to `miras commons example`), `examples/per_group.py` (now in the
+  scenario report), and the `replication2.md` / `replication3.md` outputs
+  (now `docs/commons-results-replication.md`). The seed-2 and seed-3 outputs
+  moved from `commons_output_seed2/` and `commons_output_seed3/` to
+  `commons_output/` under their 0.2.2 names. `.gitignore` now covers build
+  output, tool caches and checkpoints.
 
 
 ## 0.2.1 — 2026-09-28

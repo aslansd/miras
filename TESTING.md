@@ -2,7 +2,7 @@
 
 ```
 pip install -e ".[dev]"   # from the source folder; or: pip install "miras[all]" pytest
-pytest -q                 # fast suite, under a minute: 130 passed, 1 skipped
+pytest -q                 # fast suite, about a minute: 145 passed, 1 skipped (0.2.2)
 pytest -q --run-slow      # also fits Stan models (needs CmdStan, ~10 min)
 ```
 
@@ -69,6 +69,19 @@ for a comparison of several. The analysis was also checked by hand against
 the 0.2.0 runs: its tables reproduce the numbers computed directly from the
 summaries.
 
+**`miras.commons` tools from 0.2.2** (`tests/test_commons_v022.py`): the
+adoption in each group adds up, weighted by group size, to the overall
+adoption; adding those columns leaves every other outcome of the same run
+unchanged (same seed, same numbers as 0.2.1); the scenario report and CSVs
+carry them; `--set` parses and type-checks values, reaches the model, leaves
+results unchanged when set to the default and changes them otherwise, and
+refuses `resource.rho` in E1; `--no-support` reaches the seeding; output names
+carry `-off-`, `-nosupport`, `-set-`, `-steps` and `-seed` only when they
+differ from the defaults; and `analyze` keeps same-named files from different
+folders apart and reports a run compared with itself as identical cell by
+cell. By hand: the four scenario runs of October 2026 were rerun with 0.2.2
+and every column they share with the 0.2.1 outputs is identical.
+
 **Everything else**: engine invariants (group sizes conserved under
 migration, models drawn from the learner's own group, exact conformity
 probabilities, reproducibility from a seed), inference (ABC recovers an
@@ -116,27 +129,35 @@ Notes for reading the output:
 ## End-to-end checks for `miras.commons`
 
 Run on an 8-core Apple Silicon Mac with miras 0.2.0 (C1 to C5) and 0.2.1
-(C6, C8 to C10), September and October 2026; both versions give identical
-numbers for the same seed. The expected values are what those runs gave; the "sustained" shares are averages
+(C6, C8 to C13), September and October 2026; 0.2.0, 0.2.1 and 0.2.2 give
+identical numbers for the same seed. The expected values are what those runs gave; the "sustained" shares are averages
 over 50 runs per cell, so expect differences of a few percentage points on
 another machine or seed, not changes of direction.
 
 | # | Command | Time | Expected | 0.2.0 result |
 |---|---|---|---|---|
 | C1 | `miras commons pilot` | 2 min | no innovation: 0% sustained, shortage exactly 0.150 (ρ 0.85) and 0.300 (ρ 0.7); every group seeded at scarcity under ρ 0.7: 100% | as expected; closely matches the development pilot |
-| C2 | `miras commons e1 --cores 8` | 1 h 45 min | ρ 0.85: 0% sustained from any single seed; ρ 0.7: about 25%, best profiles about 95%; tightness effect about −0.44 | as expected (see `docs/commons-results-0.2.0.md`) |
+| C2 | `miras commons e1 --cores 8` | 1 h 45 min | ρ 0.85: 0% sustained from any single seed; ρ 0.7: about 25%, best profiles about 95%; tightness effect about −0.44 | as expected (see `docs/commons-results-e1.md`) |
 | C3 | `miras commons e1 --background low` | 2 h 07 min | 0% sustained, but a smaller adoption gap than C2 | 0% sustained; adoption gap −0.27 vs −0.43 |
 | C4 | `miras commons e1 --off tight_sanctions` | about 1 h 45 min | every-group seeding under ρ 0.7 falls from about 96% to about 9%; tightness effect survives (about −0.40) | as expected |
-| C5 | `miras commons scenario groups.json` | under a minute | a report ranking seed groups | 0.2.0 failed with a traceback when the file was missing; 0.2.1 prints one line saying how to create it (`miras commons example > groups.json`) |
-| C6 | `miras commons analyze commons_output/e1_summary.csv commons_output/e1b-low_summary.csv commons_output/e1-off-tight_sanctions_summary.csv` | seconds | the tables in `docs/commons-results-0.2.0.md` | new in 0.2.1 |
+| C5 | `miras commons scenario groups.json` | under a minute | a report ranking seed groups; from 0.2.2 also the adoption in each group (only Valley adopts) | 0.2.0 failed with a traceback when the file was missing; 0.2.1 prints one line saying how to create it (`miras commons example > groups.json`) |
+| C6 | `miras commons analyze commons_output/e1_summary.csv commons_output/e1b-low_summary.csv commons_output/e1-off-tight_sanctions_summary.csv` | seconds | the tables in `docs/commons-results-e1.md` for the first file | new in 0.2.1 |
 | C7 | interrupt any `miras commons e1` with Ctrl-C, then rerun it | | `resuming: k/N runs already done`, identical results | checked in development (`test_v9_resumed_experiment_is_identical`) |
-| C8 | the five severe-stress knockouts (`--rho 0.7 --off ...`), compared with `analyze` | about 50 min each | effect on sustained share (high − low), originate: tightness −0.06 without `tight_conformity`, −0.41 without `tight_caution`; power +0.06 without `power_share`, +0.28 without `power_prestige`; parochialism on introduction −0.04 without `ownership_bias` | as expected (0.2.1; `docs/commons-results-knockouts.md`) |
-| C9 | the one-attribute backgrounds (`--rho 0.7 --background ...`) | about 50 min each | single-seed sustained share: tightness=low 41%, tightness=high 0% (every group seeded also 0%), wealth=low 4%, altruism=low 0%, power=high 15% | as expected (0.2.1; `docs/commons-results-backgrounds.md`) |
+| C8 | the five severe-stress knockouts (`--rho 0.7 --off ...`), compared with `analyze` | about 1 h each (50 to 79 min) | effect on sustained share (high − low), originate: tightness −0.06 without `tight_conformity`, −0.41 without `tight_caution`; power +0.06 without `power_share`, +0.28 without `power_prestige`; parochialism on introduction −0.04 without `ownership_bias` | as expected (0.2.1; `docs/commons-results-knockouts.md`) |
+| C9 | the one-attribute backgrounds (`--rho 0.7 --background ...`) | about 1 h each | single-seed sustained share: tightness=low 41%, tightness=high 0% (every group seeded also 0%), wealth=low 4%, altruism=low 0%, power=high 15% | as expected (0.2.1; `docs/commons-results-backgrounds.md`) |
 | C10 | `miras commons e1 --background tightness=low` (all conditions) | about 1 h 45 min | under mild stress single seeds sometimes succeed (12 to 17%), unlike the mid background (0%) | as expected (0.2.1) |
+| C11 | the cross-checks: `--rho 0.7 --background power=high --off power_share` and `--rho 0.7 --background tightness=high --off tight_conformity` | 71 and 63 min | single seeds with powerful neighbours 15% → 40%, seed power 0 / 0 / 46% → 34 / 41 / 46%; tight background 0% → 88% (every group), 44% / 57% (single seeds) | as expected (0.2.1; `docs/commons-results-crosschecks.md`) |
+| C12 | the replications: `--rho 0.7 --seed 2` and `--seed 3` (0.2.2 names them `e1-rho0.7-seed2_*`), compared with `analyze` | 79 and 64 min | references 0% / 96% / 25% / 25% and adoption gap −0.43 as with seed 1; every effect within 0.01; cell-by-cell mean absolute difference ≈ the sampling expectation (0.020) | as expected (0.2.1; `docs/commons-results-replication.md`) |
+| C13 | `miras commons scenario examples/extremes.json`, plain and with `--off power_share` and `--off tight_conformity` | under a minute each | 0% sustained everywhere, except without conformity: Closed seeded or every group seeded at scarcity 100%, Closed introduced during plenty 86% | as expected (0.2.1; `docs/commons-results-scenarios.md`) |
 
 Notes for reading the output:
 
 - The binary `sustained` outcome can be 0% while a lot is happening; read it
-  together with `adoption_gap` (0.2.1) and the adoption columns.
+  together with `adoption_gap` (0.2.1) and the adoption columns, including the
+  adoption in each group of a scenario (0.2.2).
+- Individual cells are estimates from 50 runs (a 95% interval of up to ±14
+  points); the replication (C12) found single cells differing by up to 36
+  points between seeds, as sampling predicts. Compare averages over many
+  cells, which agree to within 0.01.
 - A knockout run is compared with the matching E1 run by `analyze`; with
   `--rho 0.7`, compare against E1 restricted the same way (`analyze ... --rho 0.7`).
