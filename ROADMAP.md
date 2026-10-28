@@ -21,10 +21,11 @@ worker; ABC contrasts centred on the posterior. Details in `CHANGELOG.md`.
   `--set section.field=value`; `--seed k` in output names; `--no-support`;
   `analyze` keeps same-named files apart and compares runs cell by cell. Same
   numbers as 0.2.1 for the same seed (checked on all four scenario runs).
-- **Thirty-four full runs (September–October 2026, 8-core Mac)**: pilot; E1;
+- **Thirty-nine full runs (September–October 2026, 8-core Mac)**: pilot; E1;
   six knockouts; seven backgrounds; two knockouts inside backgrounds; two
   replications; four scenarios; six calibration-sensitivity runs; five runs
-  on open questions. Findings: `docs/commons-findings.md` (22 findings);
+  on open questions; five follow-ups. Findings: `docs/commons-findings.md`
+  (26 findings);
   tables: `docs/commons-results-*.md`.
 
 ### What the planned steps found
@@ -112,80 +113,95 @@ recorded against what was expected.
     threshold at every stress level tried (finding 22).
     (`docs/commons-results-open-questions.md`)
 
-Not yet done: real groups, identifiability.
+**October 2026, third round** (the optional follow-ups 2a to 2c)
+
+13. **(2a) Calibration under mild stress** (`--rho 0.85 --reps 25`, θ = 1.2
+    and λ₀ = 8). *Expected:* the two settings that raised success under
+    severe stress might make mild stress winnable for a single seed.
+    *Found:* only λ₀ = 8 does (single seeds 34 to 40%, every group 89%);
+    θ = 1.2 leaves single seeds at 0% (every group 34% → 55%). With λ₀ = 8
+    the severe-stress patterns reappear. **Partly confirmed: under mild
+    stress the barrier is the value of saving, not conformity** (finding 23).
+14. **(2b) Knockouts at θ = 2.** *Expected:* the power effect shrinks with
+    equal shares and the tightness effect without conformity, as at the
+    default. *Found:* the tightness part holds (without conformity θ no
+    longer matters at all, finding 24), but **equal shares barely help at
+    θ = 2** (8–9% → 12–13%) and the power effect does not shrink: when
+    conformity stops almost every start, the water-share barrier has little
+    left to block (finding 25).
+15. **(2c) 3,000 steps near the threshold** (ρ = 0.75). *Expected:* tell a
+    slow drain from a steady state. *Found:* seedings with a lasting shortage
+    do not change; the two cells near A* move toward the same state from
+    opposite sides (Closed seeded at scarcity 14% → 64%; introduced during
+    plenty 70% → 30%). **500 steps is not long enough near the threshold**
+    (finding 26). (`docs/commons-results-followups.md`)
+
+Not yet done: real groups (no data yet), identifiability.
 
 ## Next for miras.commons
 
-Steps 1 and 2 need only what 0.2.2 provides.
-
-### 1. Real groups (E2)
-
-The main remaining step. `miras commons example > groups.json`, then describe
-the groups of a real case: sizes and rough positions on each attribute. For a
-case such as the Lake Urmia basin, these positions should come from people
-who know the communities, or from published survey measures, never from
-assigning traits to ethnic or religious groups from outside. The result is
-specific to that description: which group to seed, in which mode, and when.
-
-Since the calibration changes success rates (finding 19), run the scenario at
-the default and at the two settings that moved them most, and trust only
-what the three agree on (each under a minute):
-
-```
-miras commons scenario groups.json
-miras commons scenario groups.json --set learning.theta=2
-miras commons scenario groups.json --set learning.lambda0=8
-```
-
-Read the adoption in each group and the shortage, not only the sustained
-share (finding 22), and compare the pattern with the extreme case.
-
-### 2. Short follow-ups (optional)
-
-a. **Calibration under mild stress.** The sensitivity runs used ρ = 0.7. The
-   two settings that raised success might make mild stress winnable for a
-   single seed (0% at the default); about 35 minutes each:
-
-   ```
-   miras commons e1 --rho 0.85 --reps 25 --set learning.theta=1.2
-   miras commons e1 --rho 0.85 --reps 25 --set learning.lambda0=8
-   miras commons analyze commons_output/e1_summary.csv \
-       commons_output/e1-rho0.85-set-theta1.2_summary.csv \
-       commons_output/e1-rho0.85-set-lambda08_summary.csv --rho 0.85
-   ```
-
-b. **The mechanisms at another calibration.** Repeat the two decisive
-   knockouts at θ = 2, where success was rarest:
-
-   ```
-   miras commons e1 --rho 0.7 --reps 25 --set learning.theta=2 --off power_share
-   miras commons e1 --rho 0.7 --reps 25 --set learning.theta=2 --off tight_conformity
-   ```
-
-   *Expected:* the power effect shrinks with equal shares and the tightness
-   effect without conformity, as at the default.
-
-c. **A longer horizon near the threshold.** Some runs at ρ = 0.75 end just
-   under A* with no shortage yet (Closed seeded at scarcity: adoption 0.58,
-   shortage 0.00), where the store can only drain very slowly. Whether a
-   shortage then appears and adoption recovers needs a much longer run:
-
-   ```
-   miras commons scenario examples/extremes.json --off tight_conformity --set resource.rho=0.75 --steps 3000
-   ```
-
-### 3. Identifiability (0.2.3)
+### 1. Identifiability (0.2.3)
 
 Which field designs (one survey, repeated surveys, surveys with network
 questions, measures of social disapproval) could tell apart the mechanisms
 the runs found decisive: "conformity holds the practice back" against
-"unequal water shares hold it back", and seed-group effects against
-neighbour effects. Uses `miras.identify` with `miras.commons` as the
-simulator; needs a small adapter from `CommonsModel` to `ModelSimulator`-style
-summaries (adoption per group, share of shortage per group), planned for
-**0.2.3**. Also for 0.2.3: an outcome for the small persistent shortage of
-finding 22 (e.g. the share of runs whose shortage ends below 2%), since
-"sustained" alone counts those runs as failures.
+"unequal water shares hold it back" (findings 4, 6 and 25 show that which
+one binds depends on the calibration, so a design that can tell them apart
+matters), and seed-group effects against neighbour effects. Uses
+`miras.identify` with `miras.commons` as the simulator; needs a small adapter
+from `CommonsModel` to `ModelSimulator`-style summaries (adoption per group,
+share of shortage per group), planned for **0.2.3**. Also for 0.2.3, from
+findings 22 and 26:
+
+- an outcome for the small persistent shortage (e.g. the share of runs whose
+  shortage ends below 2%), since "sustained" alone counts those runs as
+  failures;
+- a convergence check: compare the last two 100-step windows and flag cells
+  whose adoption is still moving, so a provisional result is marked as such.
+
+### 2. Optional runs with the current version
+
+a. **Does the horizon change E1?** Finding 26 showed that 500 steps can be
+   too short near the threshold. Rerun the severe-stress E1 with a longer
+   horizon (about four times as long as the 25-run sensitivity runs, so
+   about 2.5 hours):
+
+   ```
+   miras commons e1 --rho 0.7 --reps 25 --steps 2000
+   miras commons analyze commons_output/e1_summary.csv \
+       commons_output/e1-rho0.7-steps2000_summary.csv --rho 0.7
+   ```
+
+   *Expected:* the main effects keep their signs; individual cells near the
+   threshold move.
+
+b. **The mechanisms under mild stress.** With λ₀ = 8, where mild stress is
+   winnable (finding 23), repeat the two decisive knockouts:
+
+   ```
+   miras commons e1 --rho 0.85 --reps 25 --set learning.lambda0=8 --off power_share
+   miras commons e1 --rho 0.85 --reps 25 --set learning.lambda0=8 --off tight_conformity
+   ```
+
+### 3. Real groups (E2), when data become available
+
+`miras commons example > groups.json`, then describe the groups of a real
+case: sizes and rough positions on each attribute. For a case such as the
+Lake Urmia basin, these positions should come from people who know the
+communities, or from published survey measures, never from assigning traits
+to ethnic or religious groups from outside. The result is specific to that
+description: which group to seed, in which mode, and when. Run it at the
+default and at the two settings that moved results most, use a longer
+horizon (finding 26), and trust only what the three agree on:
+
+```
+miras commons scenario groups.json --steps 2000
+miras commons scenario groups.json --steps 2000 --set learning.theta=2
+miras commons scenario groups.json --steps 2000 --set learning.lambda0=8
+```
+
+Read the adoption in each group and the shortage, not only the sustained
+share (finding 22).
 
 ### 4. Variants from the specification
 

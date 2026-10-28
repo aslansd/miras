@@ -1,7 +1,7 @@
 # miras.commons: what the runs show
 
 This is the curated summary of every `miras.commons` run so far (September and
-October 2026; 34 full runs on an 8-core Mac with miras 0.2.0, 0.2.1 and
+October 2026; 39 full runs on an 8-core Mac with miras 0.2.0, 0.2.1 and
 0.2.2, which give identical numbers for the same seed and settings). The tables behind each statement
 are in the `commons-results-*.md` files next to this one, and every one of
 them can be regenerated from `commons_output/` with `miras commons analyze`.
@@ -29,6 +29,7 @@ any real place or community.
 | scenarios (E2) | 4 | invented groups, and four extreme groups with two knockouts | `commons-results-scenarios.md` |
 | calibration sensitivity | 6 | do the conclusions survive other values of β_s, θ and λ₀? | `commons-results-sensitivity.md` |
 | open questions | 5 | introduction support; the parochial filter; the threshold | `commons-results-open-questions.md` |
+| follow-ups | 5 | calibration under mild stress; knockouts at θ = 2; a 3,000-step horizon | `commons-results-followups.md` |
 
 The severe-stress runs (1,952 cells × 50 runs) took 63 to 79 minutes each on
 8 cores, about half that with 25 runs per cell (the sensitivity runs); a
@@ -233,12 +234,56 @@ scenario takes under a minute.
       unchanged). Where a small shortage is present it persists rather than
       growing. Where there is none but adoption is just under A*, the
       deficit is below 1% of the recharge, too small for 1,500 steps to tell
-      a very slow drain from a steady state.
+      a very slow drain from a steady state (3,000 steps at ρ = 0.75 show it
+      is a drain, finding 26).
     Payoff-driven learning stops where saving just pays for itself, which
     leaves a small chronic shortage (consistent with the shortage-equals-cost
     equilibrium of verification check V5). Crossing the threshold needs something that
     holds adoption above what pays privately: in E1, the sanctions of tight
     groups (finding 5).
+
+### New in October 2026, third round: follow-ups
+
+23. **Mild stress became winnable when saved water was valued highly, not
+    when conformity was weakened.**
+    Under mild stress (ρ = 0.85) no single seed succeeds at the default
+    calibration (0%). Weakening conformity (θ = 1.2) does not change that
+    (0%; the best profile 4%), though seeding every group improves (34% →
+    55%). Raising the value of saved water (λ₀ = 8) does: single seeds 34%
+    (originate) and 40% (introduce), every group 89% (78% during plenty, 100%
+    at scarcity). Under mild stress the barrier is that saving is worth too
+    little, not that conformity is too strong. Once it is winnable, the same
+    patterns appear as under severe stress: tightness hurts (−0.50 / −0.58),
+    altruism helps (+0.41), parochialism matters only on introduction (−0.11
+    against +0.01), scarcity beats plenty (+0.09 to +0.22), and a weak seed
+    group does worst (13 to 17%, against 43 to 51% for mid or high power).
+24. **The conformity exponent acts only through conformity.** With conformity
+    switched off, θ = 2 and θ = 1.5 give the same results (single seeds 37% /
+    49% in both; cells differ by 0.027 on average, the size of sampling noise
+    for 25 against 50 runs). A consistency check of the model: θ has no other
+    route into it.
+25. **With strong conformity, equal water shares barely help.** At θ = 2,
+    sharing shortages equally raises single-seed success only from 8–9% to
+    12–13% (at the default: 25% to 45%), and the effect of the seed group's
+    power does not shrink (+0.11 → +0.15); a weak seed group goes from 0% to
+    4–5%. Switching conformity off, by contrast, lifts single seeds to 37% /
+    49%. So the expected result ("the power effect shrinks with equal
+    shares, as at the default") did not hold at θ = 2: when conformity stops
+    almost every start, the water-share barrier has little left to block.
+    Which barrier binds depends on the calibration; that each one is real
+    does not (finding 19).
+26. **Near the threshold, 500 steps is not long enough.** In the extreme
+    scenario at ρ = 0.75 without conformity, running 3,000 steps instead of
+    500 leaves every seeding with a lasting shortage unchanged (adoption
+    0.56, shortage 3%), but moves the two cells that ended near A* = 0.625,
+    from opposite sides, toward the same state. Seeding Closed at scarcity:
+    sustained 14% → 64% (median adoption 0.57 → 0.66; Open's adoption rises
+    from 0.27 to 0.59, presumably as the store slowly drains and saving
+    starts to pay).
+    Introducing into Closed during plenty: 70% → 30% (median 0.75 → 0.59;
+    Open falls from 0.97 to 0.33). Payoff learning pulls adoption to the
+    threshold from both sides (finding 22), and a sustained share measured
+    near it after 500 steps is provisional.
 
 ## What this says, in one paragraph
 
@@ -254,20 +299,24 @@ point is enough while their conformity holds; if it weakens, the practice
 has to start inside the closed group, whose parochial filter otherwise keeps
 it out. Outside support (a subsidy and demonstrators) helps an introduced
 practice through the period before it pays. Sharing shortages equally helped
-in every run set where it was tried. These conclusions held under every
-calibration tried; the success rates did not.
+in every run set where it was tried, though little when conformity is
+strong. Under mild stress a single start worked only in the run where saved
+water was valued highly. These conclusions held under every calibration
+tried; the success rates, and which barrier binds, did not.
 
 ## Caveats
 
 - The calibration (A3) changes the success rates a great deal (single seeds
-  8 to 40%) but not the conclusions (finding 19). The sensitivity runs moved
-  one parameter at a time, under severe stress only.
+  8 to 40% under severe stress, 0 to 40% under mild stress) but not the
+  conclusions (findings 19 and 23). The sensitivity runs moved one parameter
+  at a time; under mild stress only θ = 1.2 and λ₀ = 8 were tried.
 - Five groups of equal size in E1 and E1b; the scenarios vary sizes only in
   the example file.
 - "Sustained" is strict: a run that ends just below A* with a 1 to 4%
-  shortage counts as not sustained (finding 22). Read it with the adoption
-  gap, the shortage and the adoption in each group.
-- Findings 21 and 22 come from one invented four-group scenario; they show
+  shortage counts as not sustained (finding 22), and near the threshold the
+  outcome after 500 steps can still change (finding 26). Read it with the
+  adoption gap, the shortage and the adoption in each group.
+- Findings 21, 22 and 26 come from one invented four-group scenario; they show
   what the model can do, not how common it is.
 - The model is a tool for thinking about mechanisms, not a forecast for any
   real basin. Describing real communities needs the people who know them

@@ -16,6 +16,14 @@ checks).
 - README, ROADMAP (what each step found against what was expected; next:
   real groups at three calibrations, short follow-ups, identifiability in
   0.2.3) and TESTING (checks C14 to C16).
+- Third round (the optional follow-ups): findings 23 to 26 (mild stress is
+  winnable when saved water is valued highly, not when conformity is
+  weakened; θ acts only through conformity; with strong conformity equal
+  water shares barely help; near the threshold 500 steps is not long
+  enough), the raw report `docs/commons-results-followups.md`, TESTING
+  checks C17 to C19, and a ROADMAP whose next steps are identifiability
+  (0.2.3, with an outcome for small persistent shortages and a convergence
+  check), two optional runs, and real groups when data become available.
 
 
 ## 0.2.2 — 2026-10-13

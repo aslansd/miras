@@ -508,11 +508,12 @@ stress test with four groups at the extremes of the attributes.
 
 ### What the runs show (September–October 2026)
 
-Thirty-four full runs on an 8-core Mac (miras 0.2.0, 0.2.1 and 0.2.2, which
+Thirty-nine full runs on an 8-core Mac (miras 0.2.0, 0.2.1 and 0.2.2, which
 give identical numbers for the same seed and settings): E1, six mechanism
 knockouts, seven backgrounds, two knockouts inside backgrounds, two
 replications with other seeds, four scenarios, six calibration-sensitivity
-runs and five runs on open questions. The full list of twenty-two findings,
+runs, five runs on open questions and five follow-ups. The full list of
+twenty-six findings,
 with the numbers, is in **`docs/commons-findings.md`**; the tables
 behind them are in `docs/commons-results-*.md` and can be regenerated with
 `miras commons analyze`. Numbers are conditional on the calibration
@@ -576,7 +577,15 @@ share the commons needs.
     Without conformity in the extreme scenario, adoption settles just under
     the share the commons needs at every level of stress tried, leaving a
     small shortage (up to about 5%); with less stress it stops lower.
-    Holding a practice above the threshold takes sanctions.
+    Holding a practice above the threshold takes sanctions. Near the
+    threshold, 500 steps is not always long enough for the outcome to settle.
+14. **Under mild stress, the value of saved water is the barrier.** Weakening
+    conformity does not let a single seed succeed (0%); valuing saved water
+    more highly does (34 to 40%, every group 89%), with the same patterns as
+    under severe stress.
+15. **Which barrier binds depends on the calibration.** With strong
+    conformity (θ = 2), equal water shares barely help (8% → 12%), while
+    switching conformity off lifts single seeds to 37 to 49%.
 
 Best origin under severe stress: a loose, mid-power group (sustained in about
 95% of runs, originating or introduced); about ten such profiles are equally
@@ -587,15 +596,15 @@ they are not a model of any real place.
 
 Details and commands in `ROADMAP.md`.
 
-1. **Real groups (E2)**: a scenario file describing a real case, built with
-   people who know it, never by assigning traits to communities from outside,
-   and checked at two calibrations with `--set`.
-2. **Short follow-ups**: calibration sensitivity under mild stress, the
-   knockouts at the calibration that changed results most, and a longer
-   horizon for runs that end just under the threshold.
-3. **Identifiability** (0.2.3): which field data (surveys, repeated surveys,
+1. **Identifiability** (0.2.3): which field data (surveys, repeated surveys,
    network questions, measures of disapproval) could tell "conformity holds
-   the practice back" from "unequal water shares hold it back".
+   the practice back" from "unequal water shares hold it back", plus an
+   outcome for a small persistent shortage and a check that a run has
+   settled.
+2. **Real groups (E2)**, when data become available: a scenario file
+   describing a real case, built with people who know it, never by assigning
+   traits to communities from outside, and checked at three calibrations
+   with `--set` and a longer horizon.
 
 **Checked before use.** Nine verification checks with known answers pass (`tests/test_commons.py`):
 the stock drains and the first shortage arrives at the exact predicted step;
