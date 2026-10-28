@@ -1,7 +1,7 @@
 # miras.commons: what the runs show
 
 This is the curated summary of every `miras.commons` run so far (September and
-October 2026; 39 full runs on an 8-core Mac with miras 0.2.0, 0.2.1 and
+October 2026; 42 full runs on an 8-core Mac with miras 0.2.0, 0.2.1 and
 0.2.2, which give identical numbers for the same seed and settings). The tables behind each statement
 are in the `commons-results-*.md` files next to this one, and every one of
 them can be regenerated from `commons_output/` with `miras commons analyze`.
@@ -29,7 +29,7 @@ any real place or community.
 | scenarios (E2) | 4 | invented groups, and four extreme groups with two knockouts | `commons-results-scenarios.md` |
 | calibration sensitivity | 6 | do the conclusions survive other values of β_s, θ and λ₀? | `commons-results-sensitivity.md` |
 | open questions | 5 | introduction support; the parochial filter; the threshold | `commons-results-open-questions.md` |
-| follow-ups | 5 | calibration under mild stress; knockouts at θ = 2; a 3,000-step horizon | `commons-results-followups.md` |
+| follow-ups | 8 | calibration under mild stress; knockouts at θ = 2 and under mild stress; longer horizons | `commons-results-followups.md` |
 
 The severe-stress runs (1,952 cells × 50 runs) took 63 to 79 minutes each on
 8 cores, about half that with 25 runs per cell (the sensitivity runs); a
@@ -50,7 +50,8 @@ scenario takes under a minute.
    introduced. The replication (finding 13) shows this class of profile is
    robust, but the ranking within it is not: with each seed, 10 to 12
    profiles reach 94% or more (the best 95.5 to 96.5%), all of them loose and
-   mid-power, and their order changes from seed to seed.
+   mid-power, and their order changes from seed to seed. Over 2,000 steps
+   instead of 500, middling groups do as well as loose ones (finding 27).
 
 ### What the seed group's attributes do, and through which mechanism
 
@@ -285,6 +286,44 @@ scenario takes under a minute.
     threshold from both sides (finding 22), and a sustained share measured
     near it after 500 steps is provisional.
 
+### New in October 2026, fourth round: horizon and mild-stress mechanisms
+
+27. **A longer horizon keeps every conclusion but narrows the tightness
+    effect, and moves the best starting point.** Running the severe-stress E1
+    for 2,000 steps instead of 500 (25 runs per cell) leaves the references
+    almost unchanged (every group 98%; single seeds 26% originate, 31%
+    introduce, against 25% / 25%) and every sign the same. Two things move:
+    - the tightness effect shrinks from −0.44 to −0.26 (originate) and
+      −0.46 to −0.27 (introduce). Tight seed groups gain (1% → 9 to 12%):
+      the seed group itself still never adopts, but given time its
+      neighbours pick the practice up (other groups' adoption 0.10 → 0.16).
+      Loose seed groups lose (46% → 37%): their adoption stays the same on
+      average (0.53 → 0.52) but sits near the threshold, so more runs end
+      just below it (finding 22);
+    - the best starting groups are now middling in tightness (0.5) rather
+      than loose (0.1): at mid power, loose and middling seeds do equally
+      well (57% and 56%, against 79% and 57% at 500 steps). A little
+      tightness, and so a little sanctioning, helps to hold a practice once
+      it has spread (finding 5).
+    Introduction now does somewhat better than origination (31% against 26%)
+    and the parochialism penalty on introduction is smaller (−0.06 against
+    −0.14). Power still works as before (seed power low / mid / high: 0 / 41
+    / 36% originating). The severe-stress conclusions of findings 2 and 4 to 7
+    stand; the best starting group of finding 3 depends on how long one
+    waits.
+28. **Under mild stress the same two mechanisms are at work.** With saved
+    water valued highly (λ₀ = 8), where mild stress is winnable (finding 23):
+    - equal water shares remove the effect of the seed group's power
+      completely (+0.34 → 0.00; low / mid / high 13 / 43 / 47% → 42 / 43 /
+      43%) and raise single-seed success from 34 / 40% to 43 / 50%;
+    - without conformity the tightness effect almost disappears (−0.50 →
+      −0.17 originating, −0.58 → −0.12 introduced), single seeds rise to
+      38 / 50%, and the parochialism penalty on introduction vanishes too
+      (−0.11 → −0.02), as with tight neighbours (finding 12). Seeding every
+      group does a little worse without conformity (89% → 82%).
+    Power acts through the water and tightness through conformity under
+    mild stress as under severe stress (findings 4 and 6).
+
 ## What this says, in one paragraph
 
 Within this model, where to start matters less than who will refuse. A
@@ -302,7 +341,8 @@ practice through the period before it pays. Sharing shortages equally helped
 in every run set where it was tried, though little when conformity is
 strong. Under mild stress a single start worked only in the run where saved
 water was valued highly. These conclusions held under every calibration
-tried; the success rates, and which barrier binds, did not.
+tried; the success rates, which barrier binds, and (with a longer horizon)
+which starting group is best did not.
 
 ## Caveats
 
@@ -310,6 +350,9 @@ tried; the success rates, and which barrier binds, did not.
   8 to 40% under severe stress, 0 to 40% under mild stress) but not the
   conclusions (findings 19 and 23). The sensitivity runs moved one parameter
   at a time; under mild stress only θ = 1.2 and λ₀ = 8 were tried.
+- Most runs use 500 steps. A 2,000-step E1 keeps every conclusion but
+  shrinks the tightness effect and favours a middling rather than a loose
+  starting group (finding 27).
 - Five groups of equal size in E1 and E1b; the scenarios vary sizes only in
   the example file.
 - "Sustained" is strict: a run that ends just below A* with a 1 to 4%

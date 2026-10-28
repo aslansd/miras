@@ -24,6 +24,12 @@ checks).
   checks C17 to C19, and a ROADMAP whose next steps are identifiability
   (0.2.3, with an outcome for small persistent shortages and a convergence
   check), two optional runs, and real groups when data become available.
+- Fourth round (the two optional runs): findings 27 (a 2,000-step E1 keeps
+  every conclusion but shrinks the tightness effect and favours middling
+  over loose starting groups) and 28 (under mild stress, power acts through
+  the water and tightness through conformity, as under severe stress);
+  parts (d) and (e) of `docs/commons-results-followups.md`; TESTING checks
+  C20 and C21; ROADMAP: no further runs needed with 0.2.2.
 
 
 ## 0.2.2 — 2026-10-13

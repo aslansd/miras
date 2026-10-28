@@ -155,6 +155,8 @@ another machine or seed, not changes of direction.
 | C17 | `--rho 0.85 --reps 25 --set learning.theta=1.2` and `--set learning.lambda0=8` | about 35 min each | single seeds (originate / introduce): θ 1.2: 0 / 0%, every group 55%; λ₀ 8: 34 / 40%, every group 89% | as found (0.2.2; `docs/commons-results-followups.md`) |
 | C18 | `--rho 0.7 --reps 25 --set learning.theta=2 --off power_share` and `--off tight_conformity` | about 35 min each | equal shares: single seeds 12 / 13% (8 / 9% without the knockout); no conformity: 37 / 49%, the same as without conformity at θ = 1.5 | as found (0.2.2) |
 | C19 | `miras commons scenario examples/extremes.json --off tight_conformity --set resource.rho=0.75 --steps 3000` | a few minutes | Closed seeded at scarcity 60 to 64% (14% at 500 steps); Closed introduced during plenty 30% (70% at 500 steps); everything else as at 500 steps | as found (0.2.2) |
+| C20 | `miras commons e1 --rho 0.7 --reps 25 --steps 2000` | about four times a 500-step run | single seeds 26 / 31% (originate / introduce), every group 98%; tightness effect −0.26 / −0.27 (−0.44 / −0.46 at 500 steps); seed power low / mid / high 0 / 41 / 36% | as found (0.2.2; `docs/commons-results-followups.md`, part d) |
+| C21 | `--rho 0.85 --reps 25 --set learning.lambda0=8` with `--off power_share` and with `--off tight_conformity` | about 35 min each | equal shares: power effect 0.00 (42 / 43 / 43%), single seeds 43 / 50%; no conformity: tightness effect −0.17 / −0.12, single seeds 38 / 50% | as found (0.2.2; part e) |
 
 Notes for reading the output:
 

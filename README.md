@@ -508,12 +508,12 @@ stress test with four groups at the extremes of the attributes.
 
 ### What the runs show (September–October 2026)
 
-Thirty-nine full runs on an 8-core Mac (miras 0.2.0, 0.2.1 and 0.2.2, which
+Forty-two full runs on an 8-core Mac (miras 0.2.0, 0.2.1 and 0.2.2, which
 give identical numbers for the same seed and settings): E1, six mechanism
 knockouts, seven backgrounds, two knockouts inside backgrounds, two
 replications with other seeds, four scenarios, six calibration-sensitivity
-runs, five runs on open questions and five follow-ups. The full list of
-twenty-six findings,
+runs, five runs on open questions and eight follow-ups. The full list of
+twenty-eight findings,
 with the numbers, is in **`docs/commons-findings.md`**; the tables
 behind them are in `docs/commons-results-*.md` and can be regenerated with
 `miras commons analyze`. Numbers are conditional on the calibration
@@ -586,10 +586,20 @@ share the commons needs.
 15. **Which barrier binds depends on the calibration.** With strong
     conformity (θ = 2), equal water shares barely help (8% → 12%), while
     switching conformity off lifts single seeds to 37 to 49%.
+16. **Under mild stress the same mechanisms are at work.** Where mild stress
+    is winnable (saved water valued highly), equal water shares remove the
+    effect of power completely, and switching conformity off almost removes
+    the effect of tightness.
+17. **A longer horizon keeps the conclusions but moves the best start.** Over
+    2,000 steps instead of 500 every sign holds, but the tightness effect
+    shrinks (−0.44 → −0.26): neighbours of a tight group pick the practice
+    up given time, and loose pioneers more often end just below the
+    threshold. Middling groups then do as well as loose ones.
 
 Best origin under severe stress: a loose, mid-power group (sustained in about
-95% of runs, originating or introduced); about ten such profiles are equally
-good, and their order changes between seeds. The scenario groups are invented;
+95% of runs at 500 steps, originating or introduced); about ten such profiles
+are equally good, and their order changes between seeds. Over 2,000 steps a
+middling, mid-power group does as well. The scenario groups are invented;
 they are not a model of any real place.
 
 ### What comes next

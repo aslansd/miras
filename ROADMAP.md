@@ -21,11 +21,11 @@ worker; ABC contrasts centred on the posterior. Details in `CHANGELOG.md`.
   `--set section.field=value`; `--seed k` in output names; `--no-support`;
   `analyze` keeps same-named files apart and compares runs cell by cell. Same
   numbers as 0.2.1 for the same seed (checked on all four scenario runs).
-- **Thirty-nine full runs (September–October 2026, 8-core Mac)**: pilot; E1;
+- **Forty-two full runs (September–October 2026, 8-core Mac)**: pilot; E1;
   six knockouts; seven backgrounds; two knockouts inside backgrounds; two
   replications; four scenarios; six calibration-sensitivity runs; five runs
-  on open questions; five follow-ups. Findings: `docs/commons-findings.md`
-  (26 findings);
+  on open questions; eight follow-ups. Findings: `docs/commons-findings.md`
+  (28 findings);
   tables: `docs/commons-results-*.md`.
 
 ### What the planned steps found
@@ -136,6 +136,24 @@ recorded against what was expected.
     plenty 70% → 30%). **500 steps is not long enough near the threshold**
     (finding 26). (`docs/commons-results-followups.md`)
 
+**October 2026, fourth round** (the two optional runs)
+
+16. **(2a) Does the horizon change E1?** (`--rho 0.7 --reps 25 --steps 2000`).
+    *Expected:* the main effects keep their signs; cells near the threshold
+    move. *Found:* both. Every sign holds and the references barely change
+    (single seeds 26 / 31% against 25 / 25%), but the tightness effect
+    shrinks (−0.44 → −0.26): tight seeds gain (1% → 9 to 12%) because their
+    neighbours pick the practice up given time, loose seeds lose (46% →
+    37%) because more of their runs end just under the threshold. The best
+    starting groups become middling rather than loose. **Confirmed, with a
+    qualification of finding 3** (finding 27).
+17. **(2b) The mechanisms under mild stress** (`--rho 0.85 --reps 25 --set
+    learning.lambda0=8`, `--off power_share` and `--off tight_conformity`).
+    *Found:* equal shares remove the power effect completely (+0.34 → 0.00);
+    without conformity the tightness effect almost disappears (−0.50 →
+    −0.17). **Confirmed: the same mechanisms as under severe stress**
+    (finding 28). (`docs/commons-results-followups.md`, parts d and e)
+
 Not yet done: real groups (no data yet), identifiability.
 
 ## Next for miras.commons
@@ -159,29 +177,14 @@ findings 22 and 26:
 - a convergence check: compare the last two 100-step windows and flag cells
   whose adoption is still moving, so a provisional result is marked as such.
 
-### 2. Optional runs with the current version
+### 2. No further runs needed with 0.2.2
 
-a. **Does the horizon change E1?** Finding 26 showed that 500 steps can be
-   too short near the threshold. Rerun the severe-stress E1 with a longer
-   horizon (about four times as long as the 25-run sensitivity runs, so
-   about 2.5 hours):
-
-   ```
-   miras commons e1 --rho 0.7 --reps 25 --steps 2000
-   miras commons analyze commons_output/e1_summary.csv \
-       commons_output/e1-rho0.7-steps2000_summary.csv --rho 0.7
-   ```
-
-   *Expected:* the main effects keep their signs; individual cells near the
-   threshold move.
-
-b. **The mechanisms under mild stress.** With λ₀ = 8, where mild stress is
-   winnable (finding 23), repeat the two decisive knockouts:
-
-   ```
-   miras commons e1 --rho 0.85 --reps 25 --set learning.lambda0=8 --off power_share
-   miras commons e1 --rho 0.85 --reps 25 --set learning.lambda0=8 --off tight_conformity
-   ```
+Every question the runs raised has been answered with what 0.2.2 provides.
+The next useful runs need the convergence check of step 1: findings 26 and
+27 show that 500 steps is not always enough, so 0.2.3 should flag unsettled
+cells, and a longer default horizon (2,000 steps) should be considered once
+its cost is known (a 25-run severe-stress E1 at 2,000 steps is about four
+times as long as at 500).
 
 ### 3. Real groups (E2), when data become available
 
