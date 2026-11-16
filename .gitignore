@@ -20,3 +20,6 @@ commons_output/*_checkpoint.npz
 
 # macOS
 .DS_Store
+
+# reference tables of miras commons identify (rebuilt by rerunning the command)
+commons_output/*_table.npz

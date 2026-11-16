@@ -122,6 +122,13 @@ class Seeding:
             raise ValueError("timing must be plenty or scarcity")
 
 
+# 0.2.3 outcome thresholds: a shortage below 2% over the last window counts as
+# "low"; overall adoption that moved by less than 0.02 between the last two
+# windows counts as "settled"
+LOW_SHORTAGE = 0.02
+SETTLED_DRIFT = 0.02
+
+
 # --------------------------------------------------------------------------- #
 # Results
 # --------------------------------------------------------------------------- #
@@ -136,6 +143,7 @@ class CommonsResult:
     seeding: Seeding
     threshold: float = 0.1
     names: list = field(default_factory=list)
+    shortfall: np.ndarray = None  # (T, G) 1 - water received / water demanded, per group (0.2.3)
 
     @property
     def overall(self) -> np.ndarray:
@@ -147,6 +155,9 @@ class CommonsResult:
         w = slice(max(0, T - window), T)
         overall = self.overall
         mean_last = float(overall[w].mean())
+        half = min(window, T // 2)
+        drift = (float(overall[T - half:].mean() - overall[T - 2 * half:T - half].mean())
+                 if half else 0.0)
         collapsed = bool(self.shortage[w].mean() > self.threshold)
         hit = np.flatnonzero(overall >= self.a_star)
         g_pay = self.payoff[w].mean(axis=0)
@@ -168,6 +179,14 @@ class CommonsResult:
             # above (+) or below (-) the share the commons needs
             "a_star": float(self.a_star),
             "adoption_gap": float(mean_last - self.a_star),
+            # 0.2.3, from findings 22 and 26 of the October runs:
+            # runs that end with only a small shortage, which "sustained" counts
+            # as failures when adoption sits just under a_star
+            "low_shortage": bool(self.shortage[w].mean() < LOW_SHORTAGE),
+            # convergence: overall adoption in the last window minus the window
+            # before it; a run whose adoption still moves is provisional
+            "adoption_drift": drift,
+            "settled": bool(abs(drift) < SETTLED_DRIFT),
         }
 
 
@@ -267,6 +286,7 @@ class CommonsModel:
         rec_stock = np.zeros(T)
         rec_short = np.zeros(T)
         rec_pay = np.zeros((T, G))
+        rec_sf = np.zeros((T, G))
         # A2: 'plenty' starts with a full store; 'scarcity' with an empty one,
         # which is the state an innovation-free commons reaches when shortage
         # begins (the steps before it change nothing without adopters)
@@ -281,6 +301,7 @@ class CommonsModel:
             if H >= D * (1 - 1e-12):
                 h = d
                 short = 0.0
+                rec_sf[t] = 0.0
             else:
                 Dg = np.bincount(grp, weights=d, minlength=G)
                 Xg = water_fill(H, Dg, ent)
@@ -289,6 +310,7 @@ class CommonsModel:
                     m = pop.members(g)
                     h[m] = water_fill(Xg[g], d[m])                          # equal quota (D2a)
                 short = 1 - H / D
+                rec_sf[t] = 1 - Xg / np.where(Dg > 0, Dg, 1.0)
             # 3 payoffs ('Payoffs')
             service = np.minimum(1.0, h / d) if inn.efficiency else h / d0
             subsidised = support and t < sd.subsidy_steps
@@ -342,7 +364,7 @@ class CommonsModel:
             rec_pay[t] = pop.group_mean(pi)
         return CommonsResult(rec_adopt, rec_stock, rec_short, rec_pay, self.sizes.copy(),
                              self.a_star, sd, res.collapse_threshold,
-                             [g.name for g in self.groups])
+                             [g.name for g in self.groups], rec_sf)
 
     def _payoff_learning(self, pl, a, u, new, pop, prestige, own_factor, support, t, sd, rng,
                          h, cost, sanc_g, maj, value_g, reject_cost, d0, delta, L):

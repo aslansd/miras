@@ -37,8 +37,9 @@ scarcity.
      in-group model; switch with probability clip(β_s (u_model − uᵢ), 0, 1);
    - adopting a trait owned by another group is multiplied by 1 − ζ α_out,g
      (1 − ζ_ext α_out,g for an outside-owned trait, in every group).
-5. **Update** everyone at once and record adoption per group, stock, shortage
-   and mean payoffs.
+5. **Update** everyone at once and record adoption per group, stock, shortage,
+   mean payoffs and (0.2.3) each group's shortfall, 1 − water received / water
+   demanded.
 
 Sustainability threshold: demand ≤ recharge exactly when the adoption share
 reaches A* = (1 − ρ)/δ.
@@ -51,6 +52,18 @@ reaches A* = (1 − ρ)/δ.
 | A2 | Seeding timing is an experimental factor: during plenty (full store) or at the onset of scarcity (empty store). |
 | A3 | Recalibrated defaults so a mid-level population sits near its tipping point: β_s 1 → 10, θ 3 → 1.5, λ₀ 1 → 4. Results are conditional on this calibration. |
 | A4 | Verification V1 made exact: first shortage at step ⌊(K − D)/(D − I)⌋ + 1. |
+
+## Outcomes
+
+Over the last 100 steps: *sustained* (mean adoption ≥ A* and mean shortage
+below the collapse threshold), *collapsed*, mean adoption and the *adoption
+gap* (mean adoption − A*), reach, payoff inequality, adoption in the seed
+group and elsewhere, and time to A*. From 0.2.3 also *low shortage* (mean
+shortage below 2%, whatever the adoption: runs that end just under A* with a
+small shortage are not "sustained" but are not failing either) and the
+*adoption drift* between the last two 100-step windows, with *settled*
+meaning a drift below 0.02 (the noise between windows of a settled run is
+below 0.01). An unsettled run's outcome is provisional.
 
 ## Mechanism switches
 

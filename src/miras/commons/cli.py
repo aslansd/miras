@@ -8,6 +8,8 @@
     miras commons scenario groups.json           # E2: your own groups
     miras commons e1 --rho 0.7 --set learning.theta=2   # calibration sensitivity (0.2.2)
     miras commons analyze commons_output/e1_summary.csv [more summaries ...]
+    miras commons identify [groups.json] --cores 8    # which field data can tell the
+                                                      # mechanisms apart (0.2.3)
 
 Long runs checkpoint every two minutes and on Ctrl-C; rerun the same command
 to resume (identical results), or add --fresh to start over.
@@ -198,10 +200,106 @@ def cmd_analyze(argv):
     return 0
 
 
+def cmd_identify(argv):
+    from . import identify as ci
+    p = argparse.ArgumentParser(
+        prog="miras commons identify",
+        description="Which field designs can recover the conformity exponent, the power "
+                    "weighting of water shares and other parameters? One reference table "
+                    "serves every design.")
+    p.add_argument("config", nargs="?", help="scenario file (default: the example scenario)")
+    p.add_argument("--mode", default="introduce", choices=("originate", "introduce", "all"))
+    p.add_argument("--seed-group", help="name of the group the practice starts in "
+                                        "(default: the first group)")
+    p.add_argument("--timing", default="scarcity", choices=("plenty", "scarcity"))
+    p.add_argument("--params", default=",".join(ci.DEFAULT_PARAMETERS),
+                   help=f"parameters to recover, from {', '.join(ci.PARAMETERS)}")
+    p.add_argument("--designs", default=",".join(ci.DESIGNS),
+                   help=f"study designs to compare, from {', '.join(ci.DESIGNS)}")
+    p.add_argument("--n-reference", type=int, default=12000,
+                   help="simulations in the reference table (fewer than about 10,000 make the "
+                        "richer designs noisy)")
+    p.add_argument("--n-test", type=int, default=100, help="pseudo-observed datasets per design")
+    p.add_argument("--accept", type=float, default=0.05, help="ABC acceptance fraction")
+    p.add_argument("--respondents", type=int, default=100, help="people surveyed per group")
+    p.add_argument("--waves", type=int, default=5, help="survey waves in a panel")
+    p.add_argument("--steps", type=int, default=500)
+    p.add_argument("--off", default="", help="comma-separated mechanisms to switch off")
+    p.add_argument("--set", action="append", default=[], metavar="SECTION.FIELD=VALUE",
+                   help="override a model parameter that is not being recovered")
+    p.add_argument("--cores", type=int, default=os.cpu_count())
+    p.add_argument("--seed", type=int, default=1)
+    p.add_argument("--outdir", default="commons_output")
+    p.add_argument("--reuse", action="store_true",
+                   help="reuse a saved reference table with the same settings")
+    p.add_argument("--track", action="store_true", help="record the run with daftar")
+    args = p.parse_args(argv)
+    try:
+        config = ex.load_config(args.config) if args.config else ci.default_config()
+        names = ex.group_names(config)
+        if args.seed_group and args.seed_group not in names:
+            raise ValueError(f"no group '{args.seed_group}'; groups: {', '.join(names)}")
+        seeding = {"mode": args.mode, "timing": args.timing,
+                   "seed_index": names.index(args.seed_group) if args.seed_group else 0}
+        params = [x.strip() for x in args.params.split(",") if x.strip()]
+        designs = [x.strip() for x in args.designs.split(",") if x.strip()]
+        bad = [d for d in designs if d not in ci.DESIGNS]
+        if bad:
+            raise ValueError(f"unknown design(s) {', '.join(bad)}; choose from {', '.join(ci.DESIGNS)}")
+        sets = ex.parse_sets(args.set)
+        clash = [k for k in sets.get("learning", {}) if k in [ci.PARAMETERS[q][0] for q in params
+                                                              if q in ci.PARAMETERS]]
+        if clash:
+            raise ValueError(f"--set learning.{clash[0]} fixes a parameter that is being recovered")
+        sim = ci.CommonsSimulator(config, seeding, params, n_steps=args.steps,
+                                  n_respondents=args.respondents, waves=args.waves,
+                                  off=_off(args), sets=sets)
+    except (ValueError, KeyError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    cname = os.path.splitext(os.path.basename(args.config))[0] if args.config else "example"
+    start = "all" if args.mode == "all" else f"{args.mode}-{names[seeding['seed_index']]}"
+    label = f"identify-{cname}-{start}-{args.timing}"
+    label += f"-respondents{args.respondents}" if args.respondents != 100 else ""
+    label += f"-waves{args.waves}" if args.waves != 5 else ""
+    tag = run_tag(label, _off(args), sets, args.seed, steps=args.steps)
+    os.makedirs(args.outdir, exist_ok=True)
+    table_path = os.path.join(args.outdir, f"{tag}_table.npz")
+    table = None
+    if args.reuse and os.path.exists(table_path):
+        from ..inference.abc import ReferenceTable
+        table = ReferenceTable.load(table_path, sim.priors())
+        if list(table.summary_names) != list(sim.summary_names):
+            print("error: the saved table has other columns (groups or waves); run without "
+                  "--reuse", file=sys.stderr)
+            return 2
+        print(f"reusing {len(table)} simulations from {table_path}")
+    else:
+        print(f"{args.n_reference} simulations of {len(names)} groups x {args.steps} steps on "
+              f"{args.cores} cores; parameters: {', '.join(params)}", flush=True)
+    reports, table = ci.identify_designs(sim, designs, n_reference=args.n_reference,
+                                         n_test=args.n_test, accept=args.accept, seed=args.seed,
+                                         cores=args.cores, table=table, track=args.track)
+    table.save(table_path)
+    text = ci.designs_report(reports, sim)
+    md = os.path.join(args.outdir, f"{tag}_report.md")
+    js = os.path.join(args.outdir, f"{tag}_report.json")
+    with open(md, "w") as fh:
+        fh.write(text)
+    import json
+    with open(js, "w") as fh:
+        json.dump({"simulator": sim.describe(),
+                   "designs": {d: r.to_dict() for d, r in reports.items()}}, fh, indent=2,
+                  default=float)
+    print(text)
+    print(f"Written: {md}\n         {js}\n         {table_path}")
+    return 0
+
+
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     cmds = {"pilot": cmd_pilot, "e1": cmd_e1, "scenario": cmd_scenario,
-            "analyze": cmd_analyze, "example": cmd_example}
+            "analyze": cmd_analyze, "example": cmd_example, "identify": cmd_identify}
     if not argv or argv[0] not in cmds:
         print(__doc__)
         return 0 if not argv or argv[0] in ("-h", "--help") else 2

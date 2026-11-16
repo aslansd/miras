@@ -21,6 +21,9 @@ worker; ABC contrasts centred on the posterior. Details in `CHANGELOG.md`.
   `--set section.field=value`; `--seed k` in output names; `--no-support`;
   `analyze` keeps same-named files apart and compares runs cell by cell. Same
   numbers as 0.2.1 for the same seed (checked on all four scenario runs).
+- **0.2.3**: `miras commons identify` (field designs for identifiability);
+  each group's water shortfall; the outcomes `low_shortage`, `adoption_drift`
+  and `settled`. Same numbers as 0.2.2 for every outcome 0.2.2 had.
 - **Forty-two full runs (September–October 2026, 8-core Mac)**: pilot; E1;
   six knockouts; seven backgrounds; two knockouts inside backgrounds; two
   replications; four scenarios; six calibration-sensitivity runs; five runs
@@ -154,37 +157,72 @@ recorded against what was expected.
     −0.17). **Confirmed: the same mechanisms as under severe stress**
     (finding 28). (`docs/commons-results-followups.md`, parts d and e)
 
-Not yet done: real groups (no data yet), identifiability.
+**November 2026** (step 1 of the previous roadmap)
+
+18. **Identifiability** (`miras commons identify` on the example scenario,
+    introduced into Valley, into Highland, and seeded everywhere, 12,000
+    simulations each). *Asked:* which field designs could tell "conformity
+    holds the practice back" from "unequal water shares hold it back".
+    *Found:* water-delivery records recover the power weighting of shares
+    almost completely (contraction 0.87 to 0.99; one survey 0.46 to 0.59).
+    Conformity is the hard one: one survey 0.23 to 0.38, five waves plus
+    records 0.49 to 0.62, and not identified at all from a survey with
+    records wherever shares are strongly unequal. No design confuses the two
+    (no equifinality). A first try with 3,000 simulations gave unstable
+    results for the 30-number designs, so the default is now 12,000.
+    (`docs/commons-identifiability.md`, findings 29 to 31)
+19. **The two outcomes** asked for by findings 22 and 26 (`low_shortage`,
+    `settled`) are in every run from 0.2.3, and `analyze` reports how runs
+    end.
+
+Not yet done: real groups (no data yet).
 
 ## Next for miras.commons
 
-### 1. Identifiability (0.2.3)
+### 1. Data that would recover conformity (0.2.4)
 
-Which field designs (one survey, repeated surveys, surveys with network
-questions, measures of social disapproval) could tell apart the mechanisms
-the runs found decisive: "conformity holds the practice back" against
-"unequal water shares hold it back" (findings 4, 6 and 25 show that which
-one binds depends on the calibration, so a design that can tell them apart
-matters), and seed-group effects against neighbour effects. Uses
-`miras.identify` with `miras.commons` as the simulator; needs a small adapter
-from `CommonsModel` to `ModelSimulator`-style summaries (adoption per group,
-share of shortage per group), planned for **0.2.3**. Also for 0.2.3, from
-findings 22 and 26:
+Finding 30: even five survey waves with water records recover only about half
+of the information about conformity. Conformity predicts copying the local
+majority whatever the payoffs; payoff-based learning predicts copying those
+who do better. A study can ask this directly ("whom did you learn it from?
+did others in your group use it?"). To test such designs the model must
+record each learning event: whether it was conformist or payoff-based, from
+the learner's group or another, and whether the learner switched. Planned
+for **0.2.4**:
 
-- an outcome for the small persistent shortage (e.g. the share of runs whose
-  shortage ends below 2%), since "sustained" alone counts those runs as
-  failures;
-- a convergence check: compare the last two 100-step windows and flag cells
-  whose adoption is still moving, so a provisional result is marked as such.
+- record learning events per group and step (counts only, so the random
+  numbers and every result stay the same);
+- a design `network` (and `panel+network`) in `miras commons identify`: the
+  share of adopters in each group who name an in-group source, and the share
+  who switched towards their group's majority;
+- rerun the three studies of 0.2.3 with the new designs.
 
-### 2. No further runs needed with 0.2.2
+### 2. Optional runs with 0.2.3
 
-Every question the runs raised has been answered with what 0.2.2 provides.
-The next useful runs need the convergence check of step 1: findings 26 and
-27 show that 500 steps is not always enough, so 0.2.3 should flag unsettled
-cells, and a longer default horizon (2,000 steps) should be considered once
-its cost is known (a 25-run severe-stress E1 at 2,000 steps is about four
-times as long as at 500).
+a. **More respondents or more waves.** Does conformity become identifiable
+   with larger surveys, or is the limit the model's randomness?
+
+   ```
+   miras commons identify --seed-group Valley --respondents 400
+   miras commons identify --seed-group Valley --waves 10
+   ```
+
+   The outputs are named `...-respondents400_*` and `...-waves10_*`.
+
+b. **Another society.** The extreme groups, where conformity is decisive:
+
+   ```
+   miras commons identify examples/extremes.json --mode all
+   ```
+
+c. **How runs end in E1.** The 0.2.3 outcomes show whether the October
+   conclusions rest on settled runs; one severe-stress E1 at 25 runs per cell
+   (about 35 minutes) gives the table "How runs end":
+
+   ```
+   miras commons e1 --rho 0.7 --reps 25 --outdir commons_output_023
+   miras commons analyze commons_output_023/e1-rho0.7_summary.csv --rho 0.7
+   ```
 
 ### 3. Real groups (E2), when data become available
 
@@ -201,10 +239,11 @@ horizon (finding 26), and trust only what the three agree on:
 miras commons scenario groups.json --steps 2000
 miras commons scenario groups.json --steps 2000 --set learning.theta=2
 miras commons scenario groups.json --steps 2000 --set learning.lambda0=8
+miras commons identify groups.json --seed-group <name>     # the study that would test it
 ```
 
-Read the adoption in each group and the shortage, not only the sustained
-share (finding 22).
+Read the adoption in each group, the shortage and whether runs settled, not
+only the sustained share (findings 22 and 26).
 
 ### 4. Variants from the specification
 

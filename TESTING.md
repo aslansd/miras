@@ -2,7 +2,7 @@
 
 ```
 pip install -e ".[dev]"   # from the source folder; or: pip install "miras[all]" pytest
-pytest -q                 # fast suite, about a minute: 145 passed, 1 skipped (0.2.2)
+pytest -q                 # fast suite, about a minute: 158 passed, 1 skipped (0.2.3)
 pytest -q --run-slow      # also fits Stan models (needs CmdStan, ~10 min)
 ```
 
@@ -82,6 +82,19 @@ folders apart and reports a run compared with itself as identical cell by
 cell. By hand: the four scenario runs of October 2026 were rerun with 0.2.2
 and every column they share with the 0.2.1 outputs is identical.
 
+**`miras.commons` from 0.2.3** (`tests/test_commons_v023.py`): each group's
+shortfall, weighted by its demand, adds up to the overall shortage; with
+power-weighted shares the powerful group is short less; the new outcomes
+(`low_shortage`, `adoption_drift`, `settled`) leave every 0.2.2 outcome of the
+same run unchanged; a run with nothing to change is settled and a run whose
+adoption is still rising is not; scenario reports and `analyze` show how runs
+end. For identifiability: the simulator's columns match each design, it is
+reproducible from a seed, survey answers are counts out of the respondents,
+water records show the power weighting, one reference table serves every
+design, water records recover the power weighting better than a survey alone,
+and `miras commons identify` writes its report and table, reuses the table, and
+explains bad arguments in one line.
+
 **Everything else**: engine invariants (group sizes conserved under
 migration, models drawn from the learner's own group, exact conformity
 probabilities, reproducibility from a seed), inference (ABC recovers an
@@ -157,6 +170,7 @@ another machine or seed, not changes of direction.
 | C19 | `miras commons scenario examples/extremes.json --off tight_conformity --set resource.rho=0.75 --steps 3000` | a few minutes | Closed seeded at scarcity 60 to 64% (14% at 500 steps); Closed introduced during plenty 30% (70% at 500 steps); everything else as at 500 steps | as found (0.2.2) |
 | C20 | `miras commons e1 --rho 0.7 --reps 25 --steps 2000` | about four times a 500-step run | single seeds 26 / 31% (originate / introduce), every group 98%; tightness effect −0.26 / −0.27 (−0.44 / −0.46 at 500 steps); seed power low / mid / high 0 / 41 / 36% | as found (0.2.2; `docs/commons-results-followups.md`, part d) |
 | C21 | `--rho 0.85 --reps 25 --set learning.lambda0=8` with `--off power_share` and with `--off tight_conformity` | about 35 min each | equal shares: power effect 0.00 (42 / 43 / 43%), single seeds 43 / 50%; no conformity: tightness effect −0.17 / −0.12, single seeds 38 / 50% | as found (0.2.2; part e) |
+| C22 | `miras commons identify --seed-group Valley`, `--seed-group Highland`, `--mode all` (0.2.3) | about 13 min each on 2 cores, about 5 on 8 | contraction of the water-share weighting with survey + water records 0.87 to 0.97; of conformity with one survey 0.23 to 0.38, with waves + records 0.49 to 0.62; coverage 0.86 to 0.97 | as found (0.2.3; `docs/commons-identifiability.md`) |
 
 Notes for reading the output:
 

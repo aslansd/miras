@@ -38,7 +38,8 @@ CONDITIONS = {"rho": (0.85, 0.7), "contact": (0.1, 0.3), "timing": ("plenty", "s
 MODES = ("originate", "introduce")
 OUTCOMES = ("final_adoption", "mean_adoption_last", "sustained", "collapsed",
             "mean_shortage_last", "reach", "time_to_a_star", "gini_payoff",
-            "seed_group_adoption", "other_groups_adoption", "a_star", "adoption_gap")
+            "seed_group_adoption", "other_groups_adoption", "a_star", "adoption_gap",
+            "low_shortage", "adoption_drift", "settled")
 
 
 class ScenarioError(ValueError):
@@ -362,15 +363,23 @@ def scenario_report(rows, config):
     out = ["# Scenario results", ""]
     for timing in sorted({r["timing"] for r in rows}):
         sub = [r for r in rows if r["timing"] == timing]
+        new = "settled" in sub[0]                        # 0.2.3 outcomes
+        extra_h = " low shortage | settled |" if new else ""
         out += [f"## Seeded during {timing}", "",
-                "| seed group | mode | sustained | mean adoption | reach | Gini of payoffs |",
-                "| --- | --- | --- | --- | --- | --- |"]
+                "| seed group | mode | sustained | mean adoption | reach | Gini of payoffs |" + extra_h,
+                "| --- | --- | --- | --- | --- | --- |" + (" --- | --- |" if new else "")]
         for r in sorted(sub, key=lambda r: (-r["sustained"], -r["mean_adoption_last"])):
             name = {"none": "(no innovation)", "all": "(every group)"}.get(r["mode"], r["seed_name"])
+            extra = f" {r['low_shortage']:.0%} | {r['settled']:.0%} |" if new else ""
             out.append(f"| {name} | {r['mode']} | {r['sustained']:.0%} | "
                        f"{r['mean_adoption_last']:.2f} \u00b1 {r['mean_adoption_last_ci']:.2f} | "
-                       f"{r['reach']:.1f} | {r['gini_payoff']:.3f} |")
+                       f"{r['reach']:.1f} | {r['gini_payoff']:.3f} |" + extra)
         out.append("")
+        if new:
+            out += ["*Low shortage*: the shortage over the last 100 steps is below 2%. "
+                    "*Settled*: overall adoption moved by less than 0.02 between the last two "
+                    "100-step windows; a cell with few settled runs is still changing, so its "
+                    "outcome is provisional (rerun with more `--steps`).", ""]
         if all(f"adoption_{n}" in sub[0] for n in names):
             # 0.2.2: which groups hold out explains most scenario results
             out += [f"Adoption in each group (mean of the last 100 steps), seeded during {timing}:", "",

@@ -176,6 +176,32 @@ def overview(runs, rhos):
     return out + [""]
 
 
+def endings(runs, rhos):
+    """0.2.3: how runs end, for summaries that have the new outcomes. Runs
+    that end with a low shortage are not counted as sustained when adoption
+    sits just under A* (finding 22); runs whose adoption still moved over the
+    last two windows are provisional (finding 26)."""
+    have = {n: rows for n, rows in runs.items() if rows and "settled" in rows[0]}
+    if not have:
+        return []
+    out = ["## How runs end (0.2.3)", "",
+           "*Sustained*: adoption ends at or above A* without collapse. *Low shortage*: the "
+           "shortage over the last 100 steps is below 2%, whatever the adoption. *Settled*: "
+           "overall adoption moved by less than 0.02 between the last two 100-step windows; "
+           "unsettled runs are still changing, so their outcome is provisional.", "",
+           "| run | rho | mode | sustained | low shortage | settled |",
+           "| --- | --- | --- | --- | --- | --- |"]
+    for name, rows in have.items():
+        for rho in rhos:
+            s = _where(rows, rho=rho)
+            for label, sub in (("every group", _where(s, mode="all")),
+                               ("single seeds", _where(s, mode=SINGLE))):
+                if sub:
+                    out.append(f"| {name} | {rho:g} | {label} | {_pct(_mean(sub, 'sustained'))} | "
+                               f"{_pct(_mean(sub, 'low_shortage'))} | {_pct(_mean(sub, 'settled'))} |")
+    return out + [""]
+
+
 def main_effects(rows, rho, name):
     s = _where(rows, rho=rho)
     out = [f"### Main effects of the seed group's attributes ({name}, rho = {rho:g})", "",
@@ -302,6 +328,7 @@ def analyze(paths, rho=None):
            f"50-run means (see each summary's `reps`); they are conditional on the model's "
            f"calibration (specification amendment A3).", ""]
     out += overview(runs, rhos)
+    out += endings(runs, rhos)
     out += [f"## Details for `{first}`", ""]
     for r in rhos:
         out += main_effects(runs[first], r, first)

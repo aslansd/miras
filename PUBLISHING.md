@@ -53,7 +53,7 @@ pip install --no-cache-dir -U miras
 pip install "miras[all]" pytest
 install_cmdstan                  # once per machine; see README "Installing CmdStan"
 miras doctor                     # every line should say ok
-pytest -q                        # 145 passed, 1 skipped (0.2.2)
+pytest -q                        # 158 passed, 1 skipped (0.2.3)
 ```
 
 Then the end-to-end checks in `TESTING.md` (the README example and the four
@@ -74,27 +74,27 @@ paper workflows).
 
 0.2.0 added `miras.commons`; 0.2.1 the analysis tools and fixes from its
 first full runs; 0.2.2 the adoption in each group, `--set`, `--no-support`,
-complete output names and replication checks in `analyze`. None of them
-changes a simulation result: the same command, seed and settings give the
-same numbers in all three (checked by the unchanged V1 to V9 tests, the
-resume test, `test_group_columns_do_not_change_the_other_outcomes`, and by
-rerunning the four October scenario runs). Each version adds columns
-(0.2.1: `a_star`, `adoption_gap`; 0.2.2: `adoption_<group>` in scenarios);
-`analyze` reads summaries from all three.
+complete output names and replication checks in `analyze`; 0.2.3
+`miras commons identify`, each group's water shortfall and the outcomes
+`low_shortage`, `adoption_drift` and `settled`. None of them changes a
+simulation result: the same command, seed and settings give the same numbers
+in all four (checked by the unchanged V1 to V9 tests, the resume test,
+`test_group_columns_do_not_change_the_other_outcomes`,
+`test_new_outcomes_change_no_old_number`, and by rerunning scenario runs).
+Each version adds columns (0.2.1: `a_star`, `adoption_gap`; 0.2.2:
+`adoption_<group>` in scenarios; 0.2.3: `low_shortage`, `adoption_drift`,
+`settled`); `analyze` reads summaries from all of them.
 
-Before uploading 0.2.2:
+Before uploading 0.2.3:
 
 1. `pytest -q` in a clean environment with `pip install "miras[all]" pytest`:
-   145 passed, 1 skipped.
+   158 passed, 1 skipped.
 2. `miras commons scenario examples/extremes.json --reps 3` finishes and its
-   report has the table "Adoption in each group".
-3. `miras commons e1 --quick --set learning.theta=2` writes files named
-   `e1-quick-set-theta2_*`.
+   report has the columns "low shortage" and "settled".
+3. `miras commons identify --n-reference 300 --n-test 20` finishes in under a
+   minute and writes `identify-example-introduce-Highland-scarcity_*`.
 4. `miras commons analyze commons_output/e1_summary.csv` reproduces
    `docs/commons-results-e1.md` (apart from its heading and command).
-
-The 0.2.1 documentation changes that were never released as a post-release
-are part of 0.2.2, so no `0.2.1.post1` is needed.
 
 ## PyPI releases are immutable
 

@@ -463,6 +463,7 @@ miras commons e1 --rho 0.7 --set learning.theta=2   # calibration sensitivity (0
 miras commons example > groups.json            # a scenario file to edit
 miras commons scenario groups.json             # E2: your own groups, each seeded in each mode
 miras commons analyze commons_output/e1_summary.csv commons_output/e1-rho0.7-off-power_share_summary.csv
+miras commons identify groups.json --seed-group Valley   # which field data can tell the mechanisms apart (0.2.3)
 ```
 
 - `--background` takes `low`, `mid` or `high` (all five background attributes)
@@ -491,6 +492,19 @@ miras commons analyze commons_output/e1_summary.csv commons_output/e1-rho0.7-off
   the best seed groups, and, for several files, effect sizes side by side and
   (0.2.2) a cell-by-cell comparison that says whether two runs differ by more
   than sampling noise.
+
+- `identify` (0.2.3) asks which study designs could recover the conformity
+  exponent θ, the power weighting of water shares γ and the value of saved
+  water λ₀ from field data (see "Which field data can tell the mechanisms
+  apart" below). It simulates 12,000 studies of the scenario (about 5 minutes
+  on 8 cores for three groups), and compares one survey, a survey plus
+  water-delivery records, repeated surveys, and repeated surveys plus
+  records, from the same simulations. `--params`, `--respondents`, `--waves`,
+  `--mode`, `--timing`, `--off` and `--set` change what is simulated;
+  `--reuse` reuses the saved simulations.
+- Runs end with `low_shortage` (shortage below 2%) and `settled` (adoption
+  moved by less than 0.02 between the last two 100-step windows) from 0.2.3;
+  an unsettled run's outcome is provisional.
 
 A scenario file (`miras commons example` prints a fuller one):
 
@@ -602,19 +616,40 @@ are equally good, and their order changes between seeds. Over 2,000 steps a
 middling, mid-power group does as well. The scenario groups are invented;
 they are not a model of any real place.
 
+### Which field data can tell the mechanisms apart (0.2.3, November 2026)
+
+The runs found two barriers, conformity and unequal water shares, and which
+one binds depends on the calibration. `miras commons identify` asks which
+study designs could estimate both from field data. On the example scenario,
+with 12,000 simulated studies per starting point (`docs/commons-identifiability.md`):
+
+| design | conformity θ | water shares γ |
+| --- | --- | --- |
+| one survey of adoption | 0.23 to 0.38 | 0.46 to 0.59 |
+| survey + water-delivery records | 0.32 to 0.41 | 0.87 to 0.97 |
+| five survey waves | 0.38 to 0.57 | 0.56 to 0.69 |
+| five waves + records | 0.49 to 0.62 | 0.97 to 0.99 |
+
+(Contraction: the share of the prior's uncertainty the data remove, over
+three starting points; 90% intervals cover the truth 86 to 97% of the time.)
+Water records measure the shares almost completely. Conformity needs
+repeated surveys and is still only about half recovered; where shares are
+strongly unequal, one survey with records carries no trace of it at all.
+No design confuses the two mechanisms with each other.
+
 ### What comes next
 
 Details and commands in `ROADMAP.md`.
 
-1. **Identifiability** (0.2.3): which field data (surveys, repeated surveys,
-   network questions, measures of disapproval) could tell "conformity holds
-   the practice back" from "unequal water shares hold it back", plus an
-   outcome for a small persistent shortage and a check that a run has
-   settled.
+1. **Data that would recover conformity** (0.2.4): record each learning event
+   in the model, so that network questions (whom people learned the practice
+   from, and whether they changed to match their group) can be added as a
+   design, and test them with `miras commons identify`.
 2. **Real groups (E2)**, when data become available: a scenario file
    describing a real case, built with people who know it, never by assigning
-   traits to communities from outside, and checked at three calibrations
-   with `--set` and a longer horizon.
+   traits to communities from outside, checked at three calibrations with
+   `--set`, a longer horizon, and `identify` to plan the study that would
+   test it.
 
 **Checked before use.** Nine verification checks with known answers pass (`tests/test_commons.py`):
 the stock drains and the first shortage arrives at the exact predicted step;
@@ -705,8 +740,8 @@ pytest -q                      # engine vs. theory, detectors vs. ground truth
 pytest -q --run-slow           # also fits Stan models (needs CmdStan)
 ```
 
-Expected: `145 passed, 1 skipped` (the skip is the slow Stan test; without
-daftar installed, `144 passed, 2 skipped`). The core install (numpy only)
+Expected: `158 passed, 1 skipped` (the skip is the slow Stan test; without
+daftar installed, `157 passed, 2 skipped`). The core install (numpy only)
 also works: tests that need matplotlib, pandas or daftar skip themselves.
 
 The detector tests are the ones that matter. Toy simulators with known

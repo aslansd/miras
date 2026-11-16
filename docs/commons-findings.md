@@ -1,8 +1,9 @@
 # miras.commons: what the runs show
 
-This is the curated summary of every `miras.commons` run so far (September and
-October 2026; 42 full runs on an 8-core Mac with miras 0.2.0, 0.2.1 and
-0.2.2, which give identical numbers for the same seed and settings). The tables behind each statement
+This is the curated summary of every `miras.commons` run so far: 42 full runs
+on an 8-core Mac in September and October 2026 (miras 0.2.0 to 0.2.2, which
+give identical numbers for the same seed and settings), and three
+identifiability studies in November (0.2.3). The tables behind each statement
 are in the `commons-results-*.md` files next to this one, and every one of
 them can be regenerated from `commons_output/` with `miras commons analyze`.
 
@@ -29,6 +30,7 @@ any real place or community.
 | scenarios (E2) | 4 | invented groups, and four extreme groups with two knockouts | `commons-results-scenarios.md` |
 | calibration sensitivity | 6 | do the conclusions survive other values of β_s, θ and λ₀? | `commons-results-sensitivity.md` |
 | open questions | 5 | introduction support; the parochial filter; the threshold | `commons-results-open-questions.md` |
+| identifiability | 3 | which field designs recover conformity and water shares | `commons-identifiability.md` |
 | follow-ups | 8 | calibration under mild stress; knockouts at θ = 2 and under mild stress; longer horizons | `commons-results-followups.md` |
 
 The severe-stress runs (1,952 cells × 50 runs) took 63 to 79 minutes each on
@@ -323,6 +325,28 @@ scenario takes under a minute.
       group does a little worse without conformity (89% → 82%).
     Power acts through the water and tightness through conformity under
     mild stress as under severe stress (findings 4 and 6).
+
+### New in November 2026: identifiability (0.2.3)
+
+From `miras commons identify` on the example scenario, three starting
+points, 12,000 simulated studies each (details: `commons-identifiability.md`).
+
+29. **Unequal water shares can be measured; use water-delivery records.** One
+    survey of adoption recovers about half of the information about the power
+    weighting of water shares (contraction 0.46 to 0.59); adding each group's
+    shortfall from delivery records recovers nearly all of it (0.87 to 0.99).
+30. **Conformity is hard to measure and needs repeated surveys.** One survey
+    recovers about a quarter of the information about the conformity exponent
+    when the practice starts in one group (0.23 to 0.25), five survey waves
+    0.38 to 0.44, and waves plus water records about one half (0.49 to 0.51).
+    Seeding every group helps (up to 0.62). No design confuses the two
+    mechanisms along a trade-off (no equifinality); conformity's trace is
+    simply faint.
+31. **Strong unequal shares hide conformity in the data.** With a survey and
+    water records, the conformity exponent is not identified wherever the
+    power weighting exceeds about 0.7: when shortages fall on the weak
+    groups, adoption stalls there whatever the conformity. One barrier masks
+    the other in the data as in the outcomes (finding 25).
 
 ## What this says, in one paragraph
 

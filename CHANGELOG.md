@@ -1,6 +1,47 @@
 # Changelog
 
-## Unreleased
+## 0.2.3 — 2026-11-16
+
+The identifiability step of the roadmap, and the two additions the October
+runs asked for. Gives the same numbers as 0.2.2 for every outcome 0.2.2 had,
+for the same seed and settings (checked on a scenario run and pinned by
+`test_new_outcomes_change_no_old_number`).
+
+**Identifiability: `miras commons identify`** (new module `miras.commons.identify`)
+- `CommonsSimulator` turns a scenario into the data a field study would
+  collect: surveys of adoption in each group (a binomial sample of
+  `--respondents` people per group) at `--waves` times, and each group's
+  water shortfall (delivery records) before each wave.
+- Four designs from those columns: `survey` (one survey at the end),
+  `survey+water`, `panel` (repeated surveys) and `panel+water`. One
+  reference table serves every design, so comparing them costs no extra
+  simulations.
+- Parameters to recover: the conformity exponent θ, the power weighting of
+  water shares γ, the value of saved water λ₀ and the payoff-learning slope
+  β_s (`--params`; default θ, γ and λ₀). The report gives each parameter's
+  contraction and 90% coverage per design, and the `miras.identify`
+  findings (`NOT_IDENTIFIED`, `EQUIFINALITY`, with the region where they
+  hold); the reference table is saved and can be reused (`--reuse`).
+  Output names say the scenario, the start, the timing and any setting that
+  differs from the defaults (e.g. `identify-example-introduce-Valley-scarcity`,
+  `...-respondents400`, `...-waves10`).
+- Default 12,000 simulations: with 3,000 the 30-column designs gave unstable
+  contraction and coverage down to 0.72.
+
+**New outcomes** (findings 22 and 26)
+- Each group's water shortfall is recorded every step (`CommonsResult.shortfall`).
+- `low_shortage`: the shortage over the last 100 steps is below 2%, whatever
+  the adoption.
+- `adoption_drift` and `settled`: the change in overall adoption between the
+  last two 100-step windows, and whether it is below 0.02 (the noise between
+  windows of a settled run is below 0.01). Unsettled runs are provisional.
+- Scenario reports show both; `analyze` adds a table "How runs end".
+
+**Documentation**
+- `docs/commons-identifiability.md`: the first identifiability study.
+- README, ROADMAP, TESTING, PUBLISHING and `docs/commons-model.md` updated.
+- The documentation changes made after 0.2.2 was built (findings 19 to 28
+  and their reports) are listed here for the record:
 
 Documentation only (no code changes), from the second round of October runs
 (calibration sensitivity with `--set`, `--no-support`, and three scenario
