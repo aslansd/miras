@@ -1,0 +1,475 @@
+{
+  "simulator": {
+    "simulator": "miras.commons.identify.CommonsSimulator",
+    "groups": [
+      "Highland",
+      "Valley",
+      "Riverside"
+    ],
+    "seeding": {
+      "mode": "introduce",
+      "seed_index": 1,
+      "timing": "scarcity"
+    },
+    "parameters": [
+      "theta",
+      "gamma_share",
+      "lambda0"
+    ],
+    "n_steps": 500,
+    "n_respondents": 100,
+    "waves": [
+      50,
+      100,
+      150,
+      200,
+      250,
+      300,
+      350,
+      400,
+      450,
+      500
+    ],
+    "off": []
+  },
+  "designs": {
+    "survey": {
+      "parameters": [
+        {
+          "name": "theta",
+          "contraction": 0.24884655950245388,
+          "coverage90": 0.9,
+          "bias": -0.07423239260312031
+        },
+        {
+          "name": "gamma_share",
+          "contraction": 0.533427952917288,
+          "coverage90": 0.93,
+          "bias": -0.027607312722316885
+        },
+        {
+          "name": "lambda0",
+          "contraction": 0.2941519537968102,
+          "coverage90": 0.94,
+          "bias": -0.043796026146024604
+        }
+      ],
+      "findings": [
+        {
+          "id": "NOT_IDENTIFIED",
+          "severity": "warning",
+          "params": [
+            "theta"
+          ],
+          "what": "The posterior for theta is close to its prior (contraction 0.15 in this region): these summaries carry little information about it, alone or in combination with other parameters.",
+          "evidence": {
+            "contraction": 0.1547317837507467,
+            "n": 33
+          },
+          "where": "theta > 2.38"
+        },
+        {
+          "id": "NOT_IDENTIFIED",
+          "severity": "warning",
+          "params": [
+            "lambda0"
+          ],
+          "what": "The posterior for lambda0 is close to its prior (contraction 0.11 in this region): these summaries carry little information about it, alone or in combination with other parameters.",
+          "evidence": {
+            "contraction": 0.1146327870213025,
+            "n": 34
+          },
+          "where": "gamma_share < 0.703"
+        }
+      ],
+      "info": {
+        "method": "rejection",
+        "summaries": [
+          "adoption_w10_Highland",
+          "adoption_w10_Valley",
+          "adoption_w10_Riverside"
+        ],
+        "priors": {
+          "theta": "Uniform(low=1.0, high=3.0)",
+          "gamma_share": "Uniform(low=0.0, high=2.0)",
+          "lambda0": "LogUniform(low=1.0, high=16.0)"
+        },
+        "simulator": {
+          "simulator": "miras.commons.identify.CommonsSimulator",
+          "groups": [
+            "Highland",
+            "Valley",
+            "Riverside"
+          ],
+          "seeding": {
+            "mode": "introduce",
+            "seed_index": 1,
+            "timing": "scarcity"
+          },
+          "parameters": [
+            "theta",
+            "gamma_share",
+            "lambda0"
+          ],
+          "n_steps": 500,
+          "n_respondents": 100,
+          "waves": [
+            50,
+            100,
+            150,
+            200,
+            250,
+            300,
+            350,
+            400,
+            450,
+            500
+          ],
+          "off": []
+        },
+        "n_reference": 12000,
+        "accept": 0.05,
+        "adjusted": true,
+        "n_test": 100,
+        "design": "survey"
+      }
+    },
+    "survey+water": {
+      "parameters": [
+        {
+          "name": "theta",
+          "contraction": 0.3267814892786813,
+          "coverage90": 0.91,
+          "bias": -0.06770800346839041
+        },
+        {
+          "name": "gamma_share",
+          "contraction": 0.9583395676075983,
+          "coverage90": 0.89,
+          "bias": 0.024725949457238116
+        },
+        {
+          "name": "lambda0",
+          "contraction": 0.5255738551664226,
+          "coverage90": 0.92,
+          "bias": 0.03460647987829106
+        }
+      ],
+      "findings": [
+        {
+          "id": "NOT_IDENTIFIED",
+          "severity": "warning",
+          "params": [
+            "theta"
+          ],
+          "what": "The posterior for theta is close to its prior (contraction 0.12 in this region): these summaries carry little information about it, alone or in combination with other parameters.",
+          "evidence": {
+            "contraction": 0.12114905018081407,
+            "n": 33
+          },
+          "where": "gamma_share > 1.33"
+        }
+      ],
+      "info": {
+        "method": "rejection",
+        "summaries": [
+          "adoption_w10_Highland",
+          "adoption_w10_Valley",
+          "adoption_w10_Riverside",
+          "shortfall_w10_Highland",
+          "shortfall_w10_Valley",
+          "shortfall_w10_Riverside"
+        ],
+        "priors": {
+          "theta": "Uniform(low=1.0, high=3.0)",
+          "gamma_share": "Uniform(low=0.0, high=2.0)",
+          "lambda0": "LogUniform(low=1.0, high=16.0)"
+        },
+        "simulator": {
+          "simulator": "miras.commons.identify.CommonsSimulator",
+          "groups": [
+            "Highland",
+            "Valley",
+            "Riverside"
+          ],
+          "seeding": {
+            "mode": "introduce",
+            "seed_index": 1,
+            "timing": "scarcity"
+          },
+          "parameters": [
+            "theta",
+            "gamma_share",
+            "lambda0"
+          ],
+          "n_steps": 500,
+          "n_respondents": 100,
+          "waves": [
+            50,
+            100,
+            150,
+            200,
+            250,
+            300,
+            350,
+            400,
+            450,
+            500
+          ],
+          "off": []
+        },
+        "n_reference": 12000,
+        "accept": 0.05,
+        "adjusted": true,
+        "n_test": 100,
+        "design": "survey+water"
+      }
+    },
+    "panel": {
+      "parameters": [
+        {
+          "name": "theta",
+          "contraction": 0.49133061605586625,
+          "coverage90": 0.85,
+          "bias": -0.040712624440034366
+        },
+        {
+          "name": "gamma_share",
+          "contraction": 0.6858007175627537,
+          "coverage90": 0.91,
+          "bias": 0.0003618355034949544
+        },
+        {
+          "name": "lambda0",
+          "contraction": 0.45147209715704506,
+          "coverage90": 0.94,
+          "bias": -0.14955152941119423
+        }
+      ],
+      "findings": [
+        {
+          "id": "NOT_IDENTIFIED",
+          "severity": "warning",
+          "params": [
+            "lambda0"
+          ],
+          "what": "The posterior for lambda0 is close to its prior (contraction 0.15 in this region): these summaries carry little information about it, alone or in combination with other parameters.",
+          "evidence": {
+            "contraction": 0.14700475724067963,
+            "n": 34
+          },
+          "where": "gamma_share < 0.703"
+        }
+      ],
+      "info": {
+        "method": "rejection",
+        "summaries": [
+          "adoption_w1_Highland",
+          "adoption_w1_Valley",
+          "adoption_w1_Riverside",
+          "adoption_w2_Highland",
+          "adoption_w2_Valley",
+          "adoption_w2_Riverside",
+          "adoption_w3_Highland",
+          "adoption_w3_Valley",
+          "adoption_w3_Riverside",
+          "adoption_w4_Highland",
+          "adoption_w4_Valley",
+          "adoption_w4_Riverside",
+          "adoption_w5_Highland",
+          "adoption_w5_Valley",
+          "adoption_w5_Riverside",
+          "adoption_w6_Highland",
+          "adoption_w6_Valley",
+          "adoption_w6_Riverside",
+          "adoption_w7_Highland",
+          "adoption_w7_Valley",
+          "adoption_w7_Riverside",
+          "adoption_w8_Highland",
+          "adoption_w8_Valley",
+          "adoption_w8_Riverside",
+          "adoption_w9_Highland",
+          "adoption_w9_Valley",
+          "adoption_w9_Riverside",
+          "adoption_w10_Highland",
+          "adoption_w10_Valley",
+          "adoption_w10_Riverside"
+        ],
+        "priors": {
+          "theta": "Uniform(low=1.0, high=3.0)",
+          "gamma_share": "Uniform(low=0.0, high=2.0)",
+          "lambda0": "LogUniform(low=1.0, high=16.0)"
+        },
+        "simulator": {
+          "simulator": "miras.commons.identify.CommonsSimulator",
+          "groups": [
+            "Highland",
+            "Valley",
+            "Riverside"
+          ],
+          "seeding": {
+            "mode": "introduce",
+            "seed_index": 1,
+            "timing": "scarcity"
+          },
+          "parameters": [
+            "theta",
+            "gamma_share",
+            "lambda0"
+          ],
+          "n_steps": 500,
+          "n_respondents": 100,
+          "waves": [
+            50,
+            100,
+            150,
+            200,
+            250,
+            300,
+            350,
+            400,
+            450,
+            500
+          ],
+          "off": []
+        },
+        "n_reference": 12000,
+        "accept": 0.05,
+        "adjusted": true,
+        "n_test": 100,
+        "design": "panel"
+      }
+    },
+    "panel+water": {
+      "parameters": [
+        {
+          "name": "theta",
+          "contraction": 0.5756346009224632,
+          "coverage90": 0.92,
+          "bias": 0.01125259479068173
+        },
+        {
+          "name": "gamma_share",
+          "contraction": 0.991292069588503,
+          "coverage90": 0.84,
+          "bias": -0.020176873502231366
+        },
+        {
+          "name": "lambda0",
+          "contraction": 0.659116324121321,
+          "coverage90": 0.92,
+          "bias": 0.026135091413826073
+        }
+      ],
+      "findings": [],
+      "info": {
+        "method": "rejection",
+        "summaries": [
+          "adoption_w1_Highland",
+          "adoption_w1_Valley",
+          "adoption_w1_Riverside",
+          "shortfall_w1_Highland",
+          "shortfall_w1_Valley",
+          "shortfall_w1_Riverside",
+          "adoption_w2_Highland",
+          "adoption_w2_Valley",
+          "adoption_w2_Riverside",
+          "shortfall_w2_Highland",
+          "shortfall_w2_Valley",
+          "shortfall_w2_Riverside",
+          "adoption_w3_Highland",
+          "adoption_w3_Valley",
+          "adoption_w3_Riverside",
+          "shortfall_w3_Highland",
+          "shortfall_w3_Valley",
+          "shortfall_w3_Riverside",
+          "adoption_w4_Highland",
+          "adoption_w4_Valley",
+          "adoption_w4_Riverside",
+          "shortfall_w4_Highland",
+          "shortfall_w4_Valley",
+          "shortfall_w4_Riverside",
+          "adoption_w5_Highland",
+          "adoption_w5_Valley",
+          "adoption_w5_Riverside",
+          "shortfall_w5_Highland",
+          "shortfall_w5_Valley",
+          "shortfall_w5_Riverside",
+          "adoption_w6_Highland",
+          "adoption_w6_Valley",
+          "adoption_w6_Riverside",
+          "shortfall_w6_Highland",
+          "shortfall_w6_Valley",
+          "shortfall_w6_Riverside",
+          "adoption_w7_Highland",
+          "adoption_w7_Valley",
+          "adoption_w7_Riverside",
+          "shortfall_w7_Highland",
+          "shortfall_w7_Valley",
+          "shortfall_w7_Riverside",
+          "adoption_w8_Highland",
+          "adoption_w8_Valley",
+          "adoption_w8_Riverside",
+          "shortfall_w8_Highland",
+          "shortfall_w8_Valley",
+          "shortfall_w8_Riverside",
+          "adoption_w9_Highland",
+          "adoption_w9_Valley",
+          "adoption_w9_Riverside",
+          "shortfall_w9_Highland",
+          "shortfall_w9_Valley",
+          "shortfall_w9_Riverside",
+          "adoption_w10_Highland",
+          "adoption_w10_Valley",
+          "adoption_w10_Riverside",
+          "shortfall_w10_Highland",
+          "shortfall_w10_Valley",
+          "shortfall_w10_Riverside"
+        ],
+        "priors": {
+          "theta": "Uniform(low=1.0, high=3.0)",
+          "gamma_share": "Uniform(low=0.0, high=2.0)",
+          "lambda0": "LogUniform(low=1.0, high=16.0)"
+        },
+        "simulator": {
+          "simulator": "miras.commons.identify.CommonsSimulator",
+          "groups": [
+            "Highland",
+            "Valley",
+            "Riverside"
+          ],
+          "seeding": {
+            "mode": "introduce",
+            "seed_index": 1,
+            "timing": "scarcity"
+          },
+          "parameters": [
+            "theta",
+            "gamma_share",
+            "lambda0"
+          ],
+          "n_steps": 500,
+          "n_respondents": 100,
+          "waves": [
+            50,
+            100,
+            150,
+            200,
+            250,
+            300,
+            350,
+            400,
+            450,
+            500
+          ],
+          "off": []
+        },
+        "n_reference": 12000,
+        "accept": 0.05,
+        "adjusted": true,
+        "n_test": 100,
+        "design": "panel+water"
+      }
+    }
+  }
+}

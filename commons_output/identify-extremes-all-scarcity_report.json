@@ -1,0 +1,401 @@
+{
+  "simulator": {
+    "simulator": "miras.commons.identify.CommonsSimulator",
+    "groups": [
+      "Dominant",
+      "Marginal",
+      "Open",
+      "Closed"
+    ],
+    "seeding": {
+      "mode": "all",
+      "seed_index": 0,
+      "timing": "scarcity"
+    },
+    "parameters": [
+      "theta",
+      "gamma_share",
+      "lambda0"
+    ],
+    "n_steps": 500,
+    "n_respondents": 100,
+    "waves": [
+      100,
+      200,
+      300,
+      400,
+      500
+    ],
+    "off": []
+  },
+  "designs": {
+    "survey": {
+      "parameters": [
+        {
+          "name": "theta",
+          "contraction": 0.12813035914495402,
+          "coverage90": 0.88,
+          "bias": -0.03598550043626009
+        },
+        {
+          "name": "gamma_share",
+          "contraction": 0.7852411678719574,
+          "coverage90": 0.93,
+          "bias": 0.025784843672985044
+        },
+        {
+          "name": "lambda0",
+          "contraction": 0.3972550057179253,
+          "coverage90": 0.92,
+          "bias": 0.026713406139676304
+        }
+      ],
+      "findings": [
+        {
+          "id": "NOT_IDENTIFIED",
+          "severity": "warning",
+          "params": [
+            "theta"
+          ],
+          "what": "The posterior for theta is close to its prior (contraction 0.13): these summaries carry little information about it, alone or in combination with other parameters.",
+          "evidence": {
+            "contraction": 0.12813035914495402,
+            "n": 100
+          },
+          "where": ""
+        }
+      ],
+      "info": {
+        "method": "rejection",
+        "summaries": [
+          "adoption_w5_Dominant",
+          "adoption_w5_Marginal",
+          "adoption_w5_Open",
+          "adoption_w5_Closed"
+        ],
+        "priors": {
+          "theta": "Uniform(low=1.0, high=3.0)",
+          "gamma_share": "Uniform(low=0.0, high=2.0)",
+          "lambda0": "LogUniform(low=1.0, high=16.0)"
+        },
+        "simulator": {
+          "simulator": "miras.commons.identify.CommonsSimulator",
+          "groups": [
+            "Dominant",
+            "Marginal",
+            "Open",
+            "Closed"
+          ],
+          "seeding": {
+            "mode": "all",
+            "seed_index": 0,
+            "timing": "scarcity"
+          },
+          "parameters": [
+            "theta",
+            "gamma_share",
+            "lambda0"
+          ],
+          "n_steps": 500,
+          "n_respondents": 100,
+          "waves": [
+            100,
+            200,
+            300,
+            400,
+            500
+          ],
+          "off": []
+        },
+        "n_reference": 12000,
+        "accept": 0.05,
+        "adjusted": true,
+        "n_test": 100,
+        "design": "survey"
+      }
+    },
+    "survey+water": {
+      "parameters": [
+        {
+          "name": "theta",
+          "contraction": 0.14420653784733334,
+          "coverage90": 0.89,
+          "bias": -0.02440359830578157
+        },
+        {
+          "name": "gamma_share",
+          "contraction": 0.9398817790094747,
+          "coverage90": 0.88,
+          "bias": 0.05230687484504018
+        },
+        {
+          "name": "lambda0",
+          "contraction": 0.6328819426148661,
+          "coverage90": 0.94,
+          "bias": 0.02331784328844341
+        }
+      ],
+      "findings": [
+        {
+          "id": "NOT_IDENTIFIED",
+          "severity": "warning",
+          "params": [
+            "theta"
+          ],
+          "what": "The posterior for theta is close to its prior (contraction 0.14): these summaries carry little information about it, alone or in combination with other parameters.",
+          "evidence": {
+            "contraction": 0.14420653784733334,
+            "n": 100
+          },
+          "where": ""
+        }
+      ],
+      "info": {
+        "method": "rejection",
+        "summaries": [
+          "adoption_w5_Dominant",
+          "adoption_w5_Marginal",
+          "adoption_w5_Open",
+          "adoption_w5_Closed",
+          "shortfall_w5_Dominant",
+          "shortfall_w5_Marginal",
+          "shortfall_w5_Open",
+          "shortfall_w5_Closed"
+        ],
+        "priors": {
+          "theta": "Uniform(low=1.0, high=3.0)",
+          "gamma_share": "Uniform(low=0.0, high=2.0)",
+          "lambda0": "LogUniform(low=1.0, high=16.0)"
+        },
+        "simulator": {
+          "simulator": "miras.commons.identify.CommonsSimulator",
+          "groups": [
+            "Dominant",
+            "Marginal",
+            "Open",
+            "Closed"
+          ],
+          "seeding": {
+            "mode": "all",
+            "seed_index": 0,
+            "timing": "scarcity"
+          },
+          "parameters": [
+            "theta",
+            "gamma_share",
+            "lambda0"
+          ],
+          "n_steps": 500,
+          "n_respondents": 100,
+          "waves": [
+            100,
+            200,
+            300,
+            400,
+            500
+          ],
+          "off": []
+        },
+        "n_reference": 12000,
+        "accept": 0.05,
+        "adjusted": true,
+        "n_test": 100,
+        "design": "survey+water"
+      }
+    },
+    "panel": {
+      "parameters": [
+        {
+          "name": "theta",
+          "contraction": 0.29471813400862173,
+          "coverage90": 0.93,
+          "bias": 0.009360412665746677
+        },
+        {
+          "name": "gamma_share",
+          "contraction": 0.8612209040560015,
+          "coverage90": 0.91,
+          "bias": 0.04985874114585137
+        },
+        {
+          "name": "lambda0",
+          "contraction": 0.5697373267888857,
+          "coverage90": 0.93,
+          "bias": 0.027433649073064458
+        }
+      ],
+      "findings": [],
+      "info": {
+        "method": "rejection",
+        "summaries": [
+          "adoption_w1_Dominant",
+          "adoption_w1_Marginal",
+          "adoption_w1_Open",
+          "adoption_w1_Closed",
+          "adoption_w2_Dominant",
+          "adoption_w2_Marginal",
+          "adoption_w2_Open",
+          "adoption_w2_Closed",
+          "adoption_w3_Dominant",
+          "adoption_w3_Marginal",
+          "adoption_w3_Open",
+          "adoption_w3_Closed",
+          "adoption_w4_Dominant",
+          "adoption_w4_Marginal",
+          "adoption_w4_Open",
+          "adoption_w4_Closed",
+          "adoption_w5_Dominant",
+          "adoption_w5_Marginal",
+          "adoption_w5_Open",
+          "adoption_w5_Closed"
+        ],
+        "priors": {
+          "theta": "Uniform(low=1.0, high=3.0)",
+          "gamma_share": "Uniform(low=0.0, high=2.0)",
+          "lambda0": "LogUniform(low=1.0, high=16.0)"
+        },
+        "simulator": {
+          "simulator": "miras.commons.identify.CommonsSimulator",
+          "groups": [
+            "Dominant",
+            "Marginal",
+            "Open",
+            "Closed"
+          ],
+          "seeding": {
+            "mode": "all",
+            "seed_index": 0,
+            "timing": "scarcity"
+          },
+          "parameters": [
+            "theta",
+            "gamma_share",
+            "lambda0"
+          ],
+          "n_steps": 500,
+          "n_respondents": 100,
+          "waves": [
+            100,
+            200,
+            300,
+            400,
+            500
+          ],
+          "off": []
+        },
+        "n_reference": 12000,
+        "accept": 0.05,
+        "adjusted": true,
+        "n_test": 100,
+        "design": "panel"
+      }
+    },
+    "panel+water": {
+      "parameters": [
+        {
+          "name": "theta",
+          "contraction": 0.3522540953102806,
+          "coverage90": 0.86,
+          "bias": 0.01815541678293253
+        },
+        {
+          "name": "gamma_share",
+          "contraction": 0.9657783418418648,
+          "coverage90": 0.86,
+          "bias": 0.030169267694276095
+        },
+        {
+          "name": "lambda0",
+          "contraction": 0.8043287912938196,
+          "coverage90": 0.95,
+          "bias": -0.009395862774745195
+        }
+      ],
+      "findings": [],
+      "info": {
+        "method": "rejection",
+        "summaries": [
+          "adoption_w1_Dominant",
+          "adoption_w1_Marginal",
+          "adoption_w1_Open",
+          "adoption_w1_Closed",
+          "shortfall_w1_Dominant",
+          "shortfall_w1_Marginal",
+          "shortfall_w1_Open",
+          "shortfall_w1_Closed",
+          "adoption_w2_Dominant",
+          "adoption_w2_Marginal",
+          "adoption_w2_Open",
+          "adoption_w2_Closed",
+          "shortfall_w2_Dominant",
+          "shortfall_w2_Marginal",
+          "shortfall_w2_Open",
+          "shortfall_w2_Closed",
+          "adoption_w3_Dominant",
+          "adoption_w3_Marginal",
+          "adoption_w3_Open",
+          "adoption_w3_Closed",
+          "shortfall_w3_Dominant",
+          "shortfall_w3_Marginal",
+          "shortfall_w3_Open",
+          "shortfall_w3_Closed",
+          "adoption_w4_Dominant",
+          "adoption_w4_Marginal",
+          "adoption_w4_Open",
+          "adoption_w4_Closed",
+          "shortfall_w4_Dominant",
+          "shortfall_w4_Marginal",
+          "shortfall_w4_Open",
+          "shortfall_w4_Closed",
+          "adoption_w5_Dominant",
+          "adoption_w5_Marginal",
+          "adoption_w5_Open",
+          "adoption_w5_Closed",
+          "shortfall_w5_Dominant",
+          "shortfall_w5_Marginal",
+          "shortfall_w5_Open",
+          "shortfall_w5_Closed"
+        ],
+        "priors": {
+          "theta": "Uniform(low=1.0, high=3.0)",
+          "gamma_share": "Uniform(low=0.0, high=2.0)",
+          "lambda0": "LogUniform(low=1.0, high=16.0)"
+        },
+        "simulator": {
+          "simulator": "miras.commons.identify.CommonsSimulator",
+          "groups": [
+            "Dominant",
+            "Marginal",
+            "Open",
+            "Closed"
+          ],
+          "seeding": {
+            "mode": "all",
+            "seed_index": 0,
+            "timing": "scarcity"
+          },
+          "parameters": [
+            "theta",
+            "gamma_share",
+            "lambda0"
+          ],
+          "n_steps": 500,
+          "n_respondents": 100,
+          "waves": [
+            100,
+            200,
+            300,
+            400,
+            500
+          ],
+          "off": []
+        },
+        "n_reference": 12000,
+        "accept": 0.05,
+        "adjusted": true,
+        "n_test": 100,
+        "design": "panel+water"
+      }
+    }
+  }
+}
