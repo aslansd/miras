@@ -175,14 +175,42 @@ recorded against what was expected.
     `settled`) are in every run from 0.2.3, and `analyze` reports how runs
     end.
 
-Not yet done: real groups (no data yet).
+**November 2026, second round** (the optional runs with 0.2.3)
+
+20. **(2a) More respondents or more waves** (`--seed-group Valley
+    --respondents 400`; `--waves 10`). *Asked:* is the limit on conformity
+    sampling or the model's randomness? *Found:* the model's randomness. Four
+    times as many respondents adds 0.01 to 0.03 to the contraction of θ;
+    twice as many waves adds 0.07 to 0.11 (best design 0.51 → 0.58). Larger
+    surveys shrink the region where unequal shares hide conformity (γ > 0.70
+    → γ > 1.33) but do not remove it (finding 32).
+21. **(2b) The extreme groups** (`examples/extremes.json --mode all`).
+    *Expected:* conformity, decisive in this society, might be easier to
+    measure. *Found:* the opposite: θ is the least identifiable of all runs
+    (0.13 to 0.35; not identified from one survey anywhere), while water
+    shares are well identified even from one survey (0.79). In very tight
+    groups a minority practice disappears for any θ in the prior, so the data
+    show that conformity blocks it but not how strongly (finding 33).
+22. **(2c) How runs end in E1** (`--rho 0.7 --reps 25`, 0.2.3). *Found:* the
+    October numbers reproduce; with every group seeded 94% of runs have
+    settled by step 500, with single seeds 66%, and only a third of the
+    sustained single-seed runs, most of the rest still rising at the
+    threshold. Single-seed percentages are provisional in size; the
+    2,000-step E1 already showed their signs hold (finding 34).
+    (`docs/commons-results-followups.md`, part f)
+
+Real groups (E2) were dropped from the roadmap in November 2026: describing
+real communities needs data this project does not have. Scenario files
+(`miras commons scenario`) and `miras commons identify` work for any groups
+someone can describe.
 
 ## Next for miras.commons
 
 ### 1. Data that would recover conformity (0.2.4)
 
-Finding 30: even five survey waves with water records recover only about half
-of the information about conformity. Conformity predicts copying the local
+Findings 30 to 33: even ten survey waves with water records recover only
+about 0.58 of the information about conformity, larger surveys barely help,
+and where conformity is decisive it is least measurable. Conformity predicts copying the local
 majority whatever the payoffs; payoff-based learning predicts copying those
 who do better. A study can ask this directly ("whom did you learn it from?
 did others in your group use it?"). To test such designs the model must
@@ -195,57 +223,20 @@ for **0.2.4**:
 - a design `network` (and `panel+network`) in `miras commons identify`: the
   share of adopters in each group who name an in-group source, and the share
   who switched towards their group's majority;
-- rerun the three studies of 0.2.3 with the new designs.
+- rerun the 0.2.3 studies with the new designs, above all the extreme
+  groups, where surveys and records recover least about conformity
+  (finding 33), and with more waves rather than more respondents
+  (finding 32).
 
-### 2. Optional runs with 0.2.3
+### 2. A longer default horizon?
 
-a. **More respondents or more waves.** Does conformity become identifiable
-   with larger surveys, or is the limit the model's randomness?
+Finding 34: a third of single-seed runs have not settled by step 500. The
+2,000-step E1 kept every sign but moved the sizes (finding 27), and took
+about four times as long. Options for 0.2.4: keep 500 steps and report the
+settled share (as now), or make 2,000 the default for scenarios, where runs
+are cheap. To be decided with the 0.2.4 runs.
 
-   ```
-   miras commons identify --seed-group Valley --respondents 400
-   miras commons identify --seed-group Valley --waves 10
-   ```
-
-   The outputs are named `...-respondents400_*` and `...-waves10_*`.
-
-b. **Another society.** The extreme groups, where conformity is decisive:
-
-   ```
-   miras commons identify examples/extremes.json --mode all
-   ```
-
-c. **How runs end in E1.** The 0.2.3 outcomes show whether the October
-   conclusions rest on settled runs; one severe-stress E1 at 25 runs per cell
-   (about 35 minutes) gives the table "How runs end":
-
-   ```
-   miras commons e1 --rho 0.7 --reps 25 --outdir commons_output_023
-   miras commons analyze commons_output_023/e1-rho0.7_summary.csv --rho 0.7
-   ```
-
-### 3. Real groups (E2), when data become available
-
-`miras commons example > groups.json`, then describe the groups of a real
-case: sizes and rough positions on each attribute. For a case such as the
-Lake Urmia basin, these positions should come from people who know the
-communities, or from published survey measures, never from assigning traits
-to ethnic or religious groups from outside. The result is specific to that
-description: which group to seed, in which mode, and when. Run it at the
-default and at the two settings that moved results most, use a longer
-horizon (finding 26), and trust only what the three agree on:
-
-```
-miras commons scenario groups.json --steps 2000
-miras commons scenario groups.json --steps 2000 --set learning.theta=2
-miras commons scenario groups.json --steps 2000 --set learning.lambda0=8
-miras commons identify groups.json --seed-group <name>     # the study that would test it
-```
-
-Read the adoption in each group, the shortage and whether runs settled, not
-only the sustained share (findings 22 and 26).
-
-### 4. Variants from the specification
+### 3. Variants from the specification
 
 Active rejection of owned traits (D4c, already a switch:
 `ownership_rejection`), targeted first adopters (D3b), and imposition of the

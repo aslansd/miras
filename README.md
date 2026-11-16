@@ -635,21 +635,27 @@ three starting points; 90% intervals cover the truth 86 to 97% of the time.)
 Water records measure the shares almost completely. Conformity needs
 repeated surveys and is still only about half recovered; where shares are
 strongly unequal, one survey with records carries no trace of it at all.
-No design confuses the two mechanisms with each other.
+No design confuses the two mechanisms with each other. Follow-ups: ten waves
+instead of five help (best 0.58), four times as many respondents barely do
+(+0.01 to +0.03); and with the extreme groups, where conformity decides the
+outcome, its strength is the least identifiable of all (0.13 to 0.35).
+
+**How runs end.** The severe-stress E1 rerun with 0.2.3 reproduces the
+October numbers and shows that 94% of runs with every group seeded have
+settled by step 500, but only 66% of single-seed runs, and only about a
+third of the sustained ones: single-seed percentages are provisional in
+size (the 2,000-step E1 kept every sign, finding 27).
 
 ### What comes next
 
-Details and commands in `ROADMAP.md`.
+Details in `ROADMAP.md`.
 
 1. **Data that would recover conformity** (0.2.4): record each learning event
    in the model, so that network questions (whom people learned the practice
    from, and whether they changed to match their group) can be added as a
    design, and test them with `miras commons identify`.
-2. **Real groups (E2)**, when data become available: a scenario file
-   describing a real case, built with people who know it, never by assigning
-   traits to communities from outside, checked at three calibrations with
-   `--set`, a longer horizon, and `identify` to plan the study that would
-   test it.
+2. **Variants from the specification**: targeted first adopters and
+   imposition of the practice by powerful groups.
 
 **Checked before use.** Nine verification checks with known answers pass (`tests/test_commons.py`):
 the stock drains and the first shortage arrives at the exact predicted step;

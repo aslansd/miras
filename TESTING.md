@@ -171,6 +171,9 @@ another machine or seed, not changes of direction.
 | C20 | `miras commons e1 --rho 0.7 --reps 25 --steps 2000` | about four times a 500-step run | single seeds 26 / 31% (originate / introduce), every group 98%; tightness effect −0.26 / −0.27 (−0.44 / −0.46 at 500 steps); seed power low / mid / high 0 / 41 / 36% | as found (0.2.2; `docs/commons-results-followups.md`, part d) |
 | C21 | `--rho 0.85 --reps 25 --set learning.lambda0=8` with `--off power_share` and with `--off tight_conformity` | about 35 min each | equal shares: power effect 0.00 (42 / 43 / 43%), single seeds 43 / 50%; no conformity: tightness effect −0.17 / −0.12, single seeds 38 / 50% | as found (0.2.2; part e) |
 | C22 | `miras commons identify --seed-group Valley`, `--seed-group Highland`, `--mode all` (0.2.3) | about 13 min each on 2 cores, about 5 on 8 | contraction of the water-share weighting with survey + water records 0.87 to 0.97; of conformity with one survey 0.23 to 0.38, with waves + records 0.49 to 0.62; coverage 0.86 to 0.97 | as found (0.2.3; `docs/commons-identifiability.md`) |
+| C23 | `miras commons identify --seed-group Valley --respondents 400` and `--waves 10` | a few minutes each on 8 cores | θ contraction, panel + records: 0.52 (400 respondents), 0.58 (10 waves), against 0.51; coverage 0.84 to 0.95 | as found (0.2.3; `docs/commons-identifiability.md`) |
+| C24 | `miras commons identify examples/extremes.json --mode all` | a few minutes on 8 cores | θ contraction 0.13 (survey) to 0.35 (panel + records); γ 0.79 to 0.97 | as found (0.2.3) |
+| C25 | `miras commons e1 --rho 0.7 --reps 25` with 0.2.3, then `analyze` | 25 min on 8 cores | references 0% / 98% / 25% / 25%; "How runs end": every group 98% sustained, 94% settled; single seeds 25% sustained, 27% low shortage, 66% settled | as found (0.2.3; `docs/commons-results-followups.md`, part f) |
 
 Notes for reading the output:
 

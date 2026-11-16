@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+Documentation only, from the optional runs of the 0.2.3 roadmap.
+
+- `docs/commons-identifiability.md`: bigger surveys (400 respondents), more
+  waves (10) and the extreme groups; the recommended design now favours more
+  waves over more respondents.
+- `docs/commons-findings.md`: findings 32 to 34 (more waves help, more
+  respondents barely do; where conformity is decisive its strength cannot
+  be measured; a third of single-seed runs have not settled by step 500).
+- `docs/commons-results-followups.md`: part (f), the E1 rerun with the 0.2.3
+  outcomes.
+- README, ROADMAP (results recorded; real groups dropped for lack of data;
+  next: learning-event data in 0.2.4, the default horizon, variants) and
+  TESTING (checks C23 to C25).
+
+
 ## 0.2.3 — 2026-11-16
 
 The identifiability step of the roadmap, and the two additions the October

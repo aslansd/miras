@@ -2,8 +2,8 @@
 
 This is the curated summary of every `miras.commons` run so far: 42 full runs
 on an 8-core Mac in September and October 2026 (miras 0.2.0 to 0.2.2, which
-give identical numbers for the same seed and settings), and three
-identifiability studies in November (0.2.3). The tables behind each statement
+give identical numbers for the same seed and settings), and, in November with
+0.2.3, six identifiability studies and one E1 rerun. The tables behind each statement
 are in the `commons-results-*.md` files next to this one, and every one of
 them can be regenerated from `commons_output/` with `miras commons analyze`.
 
@@ -30,7 +30,8 @@ any real place or community.
 | scenarios (E2) | 4 | invented groups, and four extreme groups with two knockouts | `commons-results-scenarios.md` |
 | calibration sensitivity | 6 | do the conclusions survive other values of β_s, θ and λ₀? | `commons-results-sensitivity.md` |
 | open questions | 5 | introduction support; the parochial filter; the threshold | `commons-results-open-questions.md` |
-| identifiability | 3 | which field designs recover conformity and water shares | `commons-identifiability.md` |
+| identifiability | 6 | which field designs recover conformity and water shares; bigger surveys, more waves, another society | `commons-identifiability.md` |
+| E1 with 0.2.3 outcomes | 1 | how E1's runs end: settled or still changing | `commons-results-followups.md` (f) |
 | follow-ups | 8 | calibration under mild stress; knockouts at θ = 2 and under mild stress; longer horizons | `commons-results-followups.md` |
 
 The severe-stress runs (1,952 cells × 50 runs) took 63 to 79 minutes each on
@@ -328,8 +329,10 @@ scenario takes under a minute.
 
 ### New in November 2026: identifiability (0.2.3)
 
-From `miras commons identify` on the example scenario, three starting
-points, 12,000 simulated studies each (details: `commons-identifiability.md`).
+From `miras commons identify`, 12,000 simulated studies each: the example
+scenario from three starting points (findings 29 to 31), then bigger surveys,
+more waves and the extreme groups (32 and 33). Details:
+`commons-identifiability.md`.
 
 29. **Unequal water shares can be measured; use water-delivery records.** One
     survey of adoption recovers about half of the information about the power
@@ -347,6 +350,38 @@ points, 12,000 simulated studies each (details: `commons-identifiability.md`).
     power weighting exceeds about 0.7: when shortages fall on the weak
     groups, adoption stalls there whatever the conformity. One barrier masks
     the other in the data as in the outcomes (finding 25).
+
+32. **More survey waves help; more respondents barely do.** For a practice
+    introduced into Valley, four times as many respondents (400 per group)
+    added only 0.01 to 0.03 to the contraction of the conformity exponent,
+    while ten waves instead of five added 0.07 to 0.11 (best design: 0.58).
+    The limit is the model's own randomness, not sampling; what informs
+    about conformity is how adoption changes over time.
+33. **Where conformity is decisive, its strength cannot be measured.** With
+    the extreme groups, where conformity decides the outcome, the
+    conformity exponent is the least identifiable of all runs (one survey
+    0.13, not identified anywhere; five waves with records 0.35), while
+    water shares are well identified even from one survey (0.79). In very
+    tight groups a minority practice disappears for any exponent in the
+    prior range, so data can show that conformity blocks the practice but
+    not how strong it is.
+
+### New in November 2026: how runs end in E1
+
+34. **Most single-seed successes at 500 steps are still changing.** The
+    severe-stress E1 rerun with the 0.2.3 outcomes (25 runs per cell)
+    reproduces the October numbers, and shows how its runs end. With every
+    group seeded, 98% are sustained and 94% have settled. With a single seed,
+    only 66% of runs have settled, and of the 25% that are sustained only
+    about a third (8 points of the 25) have; of the unsettled runs 83% are
+    still rising, typically right at the threshold (median adoption gap
+    0.00). Settled runs are mostly the clear failures (58 of the 75% that
+    are not sustained): weak seed groups (96% settled) and tight ones (84%).
+    Runs that end with a low shortage but not sustained are rare in E1
+    (27% low shortage against 25% sustained), unlike the extreme scenario
+    (finding 22). So the single-seed percentages of findings 1 to 9 are
+    provisional in size, though not in sign: the 2,000-step E1 kept every
+    sign and moved the sizes (finding 27).
 
 ## What this says, in one paragraph
 
@@ -385,6 +420,9 @@ which starting group is best did not.
   adoption gap, the shortage and the adoption in each group.
 - Findings 21, 22 and 26 come from one invented four-group scenario; they show
   what the model can do, not how common it is.
-- The model is a tool for thinking about mechanisms, not a forecast for any
-  real basin. Describing real communities needs the people who know them
-  (ROADMAP, real groups).
+- Most runs use 500 steps, and a third of single-seed runs have not settled
+  by then (finding 34); their outcomes are provisional in size.
+- The model is a tool for thinking about mechanisms and study design, not a
+  forecast for any real basin. Applying it to real communities would need
+  descriptions of those communities from the people who know them, which
+  this project does not have.

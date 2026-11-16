@@ -114,11 +114,76 @@ trace of conformity is faint.
    A study of a practice that started in one group sees conformity only
    where the practice reached.
 5. **Recommended design, from these runs:** repeated surveys of adoption in
-   each group (at least five waves) together with water-delivery records by
-   group. It recovers the water shares almost completely and conformity about
+   each group (as many waves as can be afforded: ten recovered more than
+   five, while four times as many respondents hardly helped; see the
+   follow-ups below) together with water-delivery records by group. It recovers the water shares almost completely and conformity about
    half way, which is enough to tell "unequal shares hold the practice back"
    (γ well above 0) from "they do not" (γ near 0), but only roughly how
    strong conformity is.
+
+## Follow-up runs: bigger surveys, more waves, another society
+
+Three runs from the 0.2.3 roadmap (November 2026, on an 8-core Mac):
+
+```
+miras commons identify --seed-group Valley --respondents 400
+miras commons identify --seed-group Valley --waves 10
+miras commons identify examples/extremes.json --mode all
+```
+
+Reports: `commons_output/identify-example-introduce-Valley-scarcity-respondents400_report.md`,
+`...-waves10_report.md` and `commons_output/identify-extremes-all-scarcity_report.md`.
+
+**Bigger surveys and more waves**, Valley start (contraction; the first
+column is the run above with 100 respondents and 5 waves):
+
+| design | θ: 100 people, 5 waves | θ: 400 people | θ: 10 waves | γ: 100 / 400 / 10 waves |
+| --- | --- | --- | --- | --- |
+| survey | 0.25 | 0.27 | 0.25 | 0.53 / 0.55 / 0.53 |
+| survey+water | 0.32 | 0.34 | 0.33 | 0.96 / 0.96 / 0.96 |
+| panel | 0.38 | 0.41 | 0.49 | 0.66 / 0.67 / 0.69 |
+| panel+water | 0.51 | 0.52 | 0.58 | 0.98 / 0.98 / 0.99 |
+
+Coverage stays between 0.84 and 0.95. Four times as many respondents adds
+only 0.01 to 0.03 to the contraction of θ: sampling people is not the limit,
+the model's own randomness is (the same parameters give different
+histories). Twice as many waves adds 0.07 to 0.11 to the panels: what
+carries information about conformity is how adoption changes over time, and
+watching it more often helps. With a survey and water records θ is now not
+identified where γ > 1.33 (it was γ > 0.70 at 100 respondents), so larger
+surveys shrink the region where unequal shares hide conformity, but do not
+remove it.
+
+**The extreme groups** (`examples/extremes.json`, every group seeded at
+scarcity):
+
+| design | θ | γ | λ₀ |
+| --- | --- | --- | --- |
+| survey | 0.13 | 0.79 | 0.40 |
+| survey+water | 0.14 | 0.94 | 0.63 |
+| panel | 0.29 | 0.86 | 0.57 |
+| panel+water | 0.35 | 0.97 | 0.80 |
+
+Coverage 0.86 to 0.95. Here conformity decides the outcome (the two tight
+groups never adopt, findings 15 and 17), yet its exponent is the least
+identifiable of all runs: with one survey it is not identified anywhere
+(contraction 0.13), and even five waves with records recover only a third.
+The likely reason: in groups this tight, conformity removes a minority
+practice for any θ between 1 and 3, so the data show *that* conformity holds
+but not how strong it is. Water shares, by contrast, are better identified than in the
+example scenario, even from one survey (0.79): with four groups and very
+unequal power, who goes short shows clearly in who adopts.
+
+**What the follow-ups add**
+
+6. **More waves help; more respondents barely do.** To learn about
+   conformity, survey more often rather than more people.
+7. **Where conformity is decisive, its strength cannot be measured.** In
+   very tight groups the outcome is the same for any conformity exponent in
+   the prior range, so a study can establish that conformity blocks the
+   practice but not estimate θ; that needs groups or periods where the
+   practice is a sizeable minority, or data on learning itself (next
+   section).
 
 ## What would recover conformity better
 
@@ -136,9 +201,9 @@ measure:
 
 ## Caveats
 
-- One society (the example scenario), one stress level (ρ = 0.7), 500 steps,
-  100 respondents per group. More respondents or more waves would raise the
-  contractions; `--respondents` and `--waves` test that.
+- Two societies (the example scenario and the extreme groups), one stress
+  level (ρ = 0.7), 500 steps. Respondents (100, 400) and waves (5, 10) were
+  varied for one starting point only.
 - Priors matter: a narrower prior on λ₀ (if the value of water can be
   measured separately) would leave more information for θ.
 - With fewer than about 10,000 simulations the richer designs (15 and 30
